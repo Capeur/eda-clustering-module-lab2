@@ -1,20 +1,31 @@
 #!/usr/bin/env python3
-"""Build the Lab 02 (affinity metrics) GitHub Pages site into docs/.
+"""Build the bilingual (English / French) Lab 02 GitHub Pages site into docs/.
 
-Source of truth stays in the course repo (eda-learning):
-    courses/learn_clustering/module01-01-affinity-metrics/   slides, video, quiz, examples
-    platform/tools/affinity-metrics/                          interactive browser lab
+    docs/            English page + English lab
+    docs/fr/         French page + French lab (language switch on every page)
+
+Sources
+    English: your eda-learning clone (with the Lab 02 patch applied)
+        courses/learn_clustering/module01-01-affinity-metrics/   slides, video, quiz, examples
+        platform/tools/affinity-metrics/                          interactive browser lab
+    French: this repo
+        i18n/fr/module01-01-affinity-metrics/   French transcript, images, and (after
+                                                make_fr_media.py) slides, narration, video
+        i18n/fr/EXAMPLES.md, quiz.json          Track A guide and quiz
+        i18n/fr/lab_strings.py                  French text for the browser lab
+        i18n/strings.py                         page text in both languages
 
 Usage (from this repo's root):
-    python3 build_site.py --repo ~/path/to/eda-learning
+    python3 make_fr_media.py --repo ../eda-learning     # French slides + video (once, needs internet)
+    python3 build_site.py --repo ../eda-learning
 
 Needs: python3, pdftoppm (poppler-utils), and `pip install markdown pyyaml`.
-Run narrate_clips.sh in the course repo first so video.mp4 and audio/slide_timings.json exist.
 """
 from __future__ import annotations
 
 import argparse
 import html
+import importlib.util
 import json
 import re
 import shutil
@@ -24,19 +35,14 @@ from pathlib import Path
 
 HERE = Path(__file__).resolve().parent
 SRC = HERE / "site_src"
+FR_ROOT = HERE / "i18n/fr"
+FR_MODULE = FR_ROOT / "module01-01-affinity-metrics"
 MODULE_REL = Path("courses/learn_clustering/module01-01-affinity-metrics")
 TOOL_REL = Path("platform/tools/affinity-metrics")
 ASSET_REL = Path("platform/assets")
-COURSE_URL = "https://github.com/yongfu-li/eda-learning"
-VOICE = "en-US-JennyNeural"
 
-# Track A files offered for download, with a one-line description.
-EXAMPLE_FILES = [
-    ("examples/tiny_graph.json", "Starter graph (golden 1)"),
-    ("examples/priority_graph.json", "Priority graph: the first merge flips (golden 2)"),
-    ("examples/tiny_netlist.json", "Tiny netlist with wide nets (golden 3)"),
-    ("examples/affinity_check.py", "Golden self-check; --impl checks your code"),
-]
+sys.path.insert(0, str(HERE / "i18n"))
+from strings import LANGS  # noqa: E402
 
 
 def die(msg: str) -> None:
@@ -48,19 +54,25 @@ def esc(s: str) -> str:
     return html.escape(s, quote=True)
 
 
+def load_module(path: Path, name: str):
+    spec = importlib.util.spec_from_file_location(name, path)
+    mod = importlib.util.module_from_spec(spec)
+    spec.loader.exec_module(mod)
+    return mod
+
+
 # ---------------------------------------------------------------- slides
 
-def slide_titles(module: Path) -> list[str]:
+def slide_titles(media: Path) -> list[str]:
     import yaml
 
-    data = yaml.safe_load((module / "outline.yaml").read_text(encoding="utf-8"))
+    data = yaml.safe_load((media / "outline.yaml").read_text(encoding="utf-8"))
     return [str(s.get("title", f"Slide {i + 1}")) for i, s in enumerate(data.get("slides", []))]
 
 
-def render_slides(module: Path, out: Path) -> int:
-    pdf = module / "slides.pdf"
+def render_slides(pdf: Path, out: Path) -> int:
     if not pdf.is_file():
-        die(f"missing {pdf} (build it with pptx_to_pdf.sh)")
+        die(f"missing {pdf}")
     if not shutil.which("pdftoppm"):
         die("pdftoppm not found: sudo apt install poppler-utils")
     dest = out / "slides"
@@ -75,15 +87,17 @@ def render_slides(module: Path, out: Path) -> int:
 # ---------------------------------------------------------------- subtitles
 
 def _fmt_ts(t: float, sep: str) -> str:
-    h, rem = divmod(max(0.0, t), 3600)
-    m, s = divmod(rem, 60)
-    return f"{int(h):02d}:{int(m):02d}:{int(s):02d}{sep}{int(round((s % 1) * 1000)) % 1000:03d}"
+    ms_total = int(round(max(0.0, t) * 1000))
+    h, rem = divmod(ms_total, 3_600_000)
+    m, rem = divmod(rem, 60_000)
+    s, ms = divmod(rem, 1000)
+    return f"{h:02d}:{m:02d}:{s:02d}{sep}{ms:03d}"
 
 
 def _chunks(sentence: str, limit: int = 84) -> list[str]:
     """Split one sentence into caption-sized pieces (about two short lines)."""
-    words, out, cur = sentence.split(), [], ""
-    for w in words:
+    out, cur = [], ""
+    for w in sentence.split():
         if cur and len(cur) + 1 + len(w) > limit:
             out.append(cur)
             cur = w
@@ -94,18 +108,24 @@ def _chunks(sentence: str, limit: int = 84) -> list[str]:
     return out
 
 
-def build_cues(repo: Path, module: Path) -> list[tuple[float, float, str]]:
-    """Timed captions: each spoken section's audio length is shared over its
-    caption chunks in proportion to their length (same timings as the video)."""
+def build_cues(repo: Path, media: Path) -> list[tuple[float, float, str]]:
+    """Timed captions: each spoken section's audio length is shared over its caption
+    chunks in proportion to their length (same per-slide timings as the video)."""
     scripts = repo / ".cursor/skills/module-slides/scripts"
     sys.path.insert(0, str(scripts))
-    from synthesize_audio import _outline_slide_counts  # noqa: E402
+    import synthesize_audio as sa  # noqa: E402
     from transcript_parse import load_transcript_sections  # noqa: E402
     from transcript_to_speech import clean_narration_prose  # noqa: E402
 
-    timings = json.loads((module / "audio/slide_timings.json").read_text(encoding="utf-8"))
-    sections = [s for s in load_transcript_sections(module / "transcript.md") if clean_narration_prose(s.body)]
-    counts = _outline_slide_counts(module, len(sections))
+    # French code-slide titles ("— à essayer") must map back to their section too.
+    fr = load_module(HERE / "make_fr_media.py", "make_fr_media")
+    if not getattr(sa, "_fr_patched", False):
+        sa._norm_title = fr.french_norm_title(sa._norm_title)
+        sa._fr_patched = True
+
+    timings = json.loads((media / "audio/slide_timings.json").read_text(encoding="utf-8"))
+    sections = [s for s in load_transcript_sections(media / "transcript.md") if clean_narration_prose(s.body)]
+    counts = sa._outline_slide_counts(media, len(sections))
     durations = [float(t["duration"]) for t in timings]
 
     cues, t, k = [], 0.0, 0
@@ -126,8 +146,7 @@ def build_cues(repo: Path, module: Path) -> list[tuple[float, float, str]]:
 
 
 def write_subtitles(cues, out: Path) -> None:
-    vtt = ["WEBVTT", ""]
-    srt = []
+    vtt, srt = ["WEBVTT", ""], []
     for i, (a, b, text) in enumerate(cues, 1):
         vtt += [f"{_fmt_ts(a, '.')} --> {_fmt_ts(b, '.')}", text, ""]
         srt += [str(i), f"{_fmt_ts(a, ',')} --> {_fmt_ts(b, ',')}", text, ""]
@@ -137,10 +156,9 @@ def write_subtitles(cues, out: Path) -> None:
 
 # ---------------------------------------------------------------- browser lab
 
-def copy_lab(repo: Path, out: Path) -> None:
+def copy_lab(repo: Path, out: Path, t: dict, other_lab: str) -> None:
     tool, assets = repo / TOOL_REL, repo / ASSET_REL
-    dest_tool = out / "tools/affinity-metrics"
-    dest_assets = out / "assets"
+    dest_tool, dest_assets = out / "tools/affinity-metrics", out / "assets"
     dest_tool.mkdir(parents=True, exist_ok=True)
     dest_assets.mkdir(parents=True, exist_ok=True)
     for f in tool.iterdir():
@@ -148,8 +166,7 @@ def copy_lab(repo: Path, out: Path) -> None:
             shutil.copy2(f, dest_tool / f.name)
 
     # Shared course assets the lab imports (follow the import graph).
-    needed = {"site.css", "tools-shared.css", "clustering-lab.css"}
-    todo = []
+    needed, todo = {"site.css", "tools-shared.css", "clustering-lab.css"}, []
     for f in tool.glob("*.js"):
         todo += re.findall(r'from\s+"\.\./\.\./assets/([^"]+)"', f.read_text(encoding="utf-8"))
     while todo:
@@ -161,28 +178,43 @@ def copy_lab(repo: Path, out: Path) -> None:
     for name in sorted(needed):
         shutil.copy2(assets / name, dest_assets / name)
 
-    # Standalone header: no platform nav / search (those pages are not deployed here).
+    # Standalone header with the language switch (platform nav/search are not deployed here).
     page = (dest_tool / "index.html").read_text(encoding="utf-8")
     page = re.sub(r'\s*<script src="\.\./\.\./assets/site\.js"></script>', "", page)
     page = re.sub(
         r'<header class="site-header">.*?</header>',
         '<header class="site-header">\n    <div class="site-header-inner">\n'
-        '      <p class="brand"><a href="../../index.html">Clustering for EDA · Lab 02</a></p>\n'
+        f'      <p class="brand"><a href="../../index.html">{t["lab_brand"]}</a></p>\n'
         '      <nav class="site-nav" aria-label="Site">\n'
-        '        <a href="../../index.html">Lab 02 home</a>\n'
-        '        <a href="../../index.html#slides">Slides &amp; video</a>\n'
+        f'        <a href="../../index.html">{t["lab_nav_home"]}</a>\n'
+        f'        <a href="../../index.html#slides">{t["lab_nav_slides"]}</a>\n'
+        f'        <a href="{other_lab}" hreflang="{t["switch_lang"]}" lang="{t["switch_lang"]}">{t["switch_text"]}</a>\n'
         '      </nav>\n    </div>\n  </header>',
         page,
         flags=re.S,
     )
-    page = re.sub(
-        r'<footer class="site-footer">.*?</footer>',
-        '<footer class="site-footer">Lab 02 · Affinity metrics — part of the '
-        f'<a href="{COURSE_URL}">EDA Algorithms Platform</a> clustering course (CC BY 4.0).</footer>',
-        page,
-        flags=re.S,
-    )
+    page = re.sub(r'<footer class="site-footer">.*?</footer>',
+                  f'<footer class="site-footer">{t["lab_footer"]}</footer>', page, flags=re.S)
     (dest_tool / "index.html").write_text(page, encoding="utf-8")
+
+
+def translate_lab(out: Path) -> None:
+    """Apply i18n/fr/lab_strings.py to the French copy; fail if the lab drifted."""
+    table = load_module(FR_ROOT / "lab_strings.py", "lab_strings").STRINGS
+    missing = []
+    files: dict[str, str] = {}
+    for rel, en, fr in table:
+        path = out / rel
+        text = files.get(rel) or path.read_text(encoding="utf-8")
+        if en not in text:
+            missing.append(f"{rel}: {en[:70]}")
+            continue
+        files[rel] = text.replace(en, fr)
+    if missing:
+        die("French lab strings not found (the lab changed in eda-learning?). Update "
+            "i18n/fr/lab_strings.py:\n  " + "\n  ".join(missing))
+    for rel, text in files.items():
+        (out / rel).write_text(text, encoding="utf-8")
 
 
 # ---------------------------------------------------------------- page
@@ -193,8 +225,8 @@ def render_markdown(path: Path) -> str:
     return markdown.markdown(path.read_text(encoding="utf-8"), extensions=["tables", "fenced_code"])
 
 
-def transcript_html(module: Path) -> str:
-    text = (module / "transcript.md").read_text(encoding="utf-8")
+def transcript_html(path: Path) -> str:
+    text = path.read_text(encoding="utf-8")
     parts = []
     for title, body in re.findall(r"^## Slide \d+ — (.+?)\n(.*?)(?=^## Slide |\Z)", text, flags=re.S | re.M):
         body = re.sub(r"```.*?```", "", body, flags=re.S)
@@ -205,54 +237,97 @@ def transcript_html(module: Path) -> str:
     return "\n".join(parts)
 
 
-def build_page(module: Path, out: Path, n_slides: int, has_video: bool, has_subs: bool, runtime: str) -> None:
-    titles = slide_titles(module)
-    quiz = json.loads((module / "quiz.json").read_text(encoding="utf-8"))
+def build_language(repo: Path, out: Path, lang: str, base: str) -> dict:
+    """Build one language into `out`. `base` is the path from `out` to the shared docs/ root."""
+    t = LANGS[lang]
+    en_module = repo / MODULE_REL
+    media = en_module if lang == "en" else FR_MODULE  # slides, transcript, audio, video
+    examples_md = en_module / "EXAMPLES.md" if lang == "en" else FR_ROOT / "EXAMPLES.md"
+    quiz_path = en_module / "quiz.json" if lang == "en" else FR_ROOT / "quiz.json"
+    images = (en_module if lang == "en" else FR_MODULE) / "assets"
 
+    if lang == "fr" and not (FR_MODULE / "slides.pdf").is_file():
+        die("no French slides yet: run  python3 make_fr_media.py --repo ../eda-learning  first")
+
+    out.mkdir(parents=True, exist_ok=True)
+    for name in ["slides.pdf", "slides.pptx", "transcript.md"]:
+        shutil.copy2(media / name, out / name)
+    shutil.copy2(quiz_path, out / "quiz.json")
+    (out / "img").mkdir(exist_ok=True)
+    for name in ["lab-starter.png", "priority-graph.png", "real-shell.png"]:
+        src = images / name if (images / name).is_file() else en_module / "assets" / name
+        shutil.copy2(src, out / "img" / name)
+    n_slides = render_slides(media / "slides.pdf", out)
+
+    # Video + subtitles (built by narrate_clips.sh / make_fr_media.py).
+    video, timings = media / "video.mp4", media / "audio/slide_timings.json"
+    has_video, has_subs, runtime = video.is_file(), False, ""
     if has_video:
-        track = '<track kind="subtitles" src="subs.vtt" srclang="en" label="English" default>' if has_subs else ""
-        video = (
-            f'<video controls preload="metadata" poster="slides/01.png">'
-            f'<source src="video.mp4" type="video/mp4">{track}'
-            "Your browser does not support the video tag.</video>"
-        )
-        downloads = '<a class="btn" href="video.mp4" download>Download video (MP4)</a>' + (
-            '<a class="btn" href="subs.srt" download>Subtitles (SRT)</a>' if has_subs else ""
-        )
-        meta = (
-            f"<p class=\"meta\"><strong>{runtime}</strong> · {n_slides} slides · "
-            f"English narration{' and subtitles' if has_subs else ''}</p>"
-        )
+        newest = max((media / f).stat().st_mtime for f in ["transcript.md", "slides.pptx"])
+        if video.stat().st_mtime < newest:
+            print(f"WARNING [{lang}]: video.mp4 is older than the slides — rebuild the video", file=sys.stderr)
+        shutil.copy2(video, out / "video.mp4")
+        if timings.is_file():
+            durs = json.loads(timings.read_text(encoding="utf-8"))
+            if len(durs) != n_slides:
+                print(f"WARNING [{lang}]: {len(durs)} timings for {n_slides} slides — subtitles may drift", file=sys.stderr)
+            write_subtitles(build_cues(repo, media), out)
+            has_subs = True
+            total = sum(float(d["duration"]) for d in durs)
+            runtime = f"{int(total // 60)}:{int(total % 60):02d}"
     else:
-        video = '<div class="missing">The narrated video has not been built yet. Run <code>narrate_clips.sh</code> in the course repo, then rebuild this site.</div>'
-        downloads, meta = "", f'<p class="meta">{n_slides} slides</p>'
+        print(f"NOTE [{lang}]: no video yet — the page shows a placeholder.")
+
+    # Browser lab (French copy is translated).
+    other_lab = ("../../fr/tools/affinity-metrics/index.html" if lang == "en"
+                 else "../../../tools/affinity-metrics/index.html")
+    copy_lab(repo, out, t, other_lab)
+    if lang == "fr":
+        translate_lab(out)
+
+    # Page.
+    titles = slide_titles(media)
+    quiz = json.loads(quiz_path.read_text(encoding="utf-8"))
+    if has_video:
+        track = (f'<track kind="subtitles" src="subs.vtt" srclang="{lang}" label="{t["subs_label"]}" default>'
+                 if has_subs else "")
+        video_html = (f'<video controls preload="metadata" poster="slides/01.png">'
+                      f'<source src="video.mp4" type="video/mp4">{track}{t["video_fallback"]}</video>')
+        downloads = f'<a class="btn" href="video.mp4" download>{t["dl_video"]}</a>' + (
+            f'<a class="btn" href="subs.srt" download>{t["dl_subs"]}</a>' if has_subs else "")
+        meta = (f'<p class="meta"><strong>{runtime}</strong> · {n_slides} {t["meta_slides"]} · '
+                f'{t["meta_narration"]}{t["meta_and_subs"] if has_subs else ""}</p>')
+    else:
+        video_html = f'<div class="missing">{t["video_missing"]}</div>'
+        downloads, meta = "", f'<p class="meta">{n_slides} {t["meta_slides"]}</p>'
+
+    def title_of(i: int) -> str:
+        return titles[i - 1] if i <= len(titles) else ""
 
     slides = "\n".join(
         f'<figure><a href="slides/{i:02d}.png"><img src="slides/{i:02d}.png" loading="lazy" '
-        f'alt="Slide {i}: {esc(titles[i - 1] if i <= len(titles) else "")}"></a>'
-        f"<figcaption><b>{i:02d}</b>{esc(titles[i - 1] if i <= len(titles) else '')}</figcaption></figure>"
+        f'alt="{t["slide_alt"]} {i}: {esc(title_of(i))}"></a>'
+        f"<figcaption><b>{i:02d}</b>{esc(title_of(i))}</figcaption></figure>"
         for i in range(1, n_slides + 1)
     )
-    files = "\n".join(
-        f'<a href="{f}" download><code>{Path(f).name}</code><small>{esc(d)}</small></a>' for f, d in EXAMPLE_FILES
-    )
-
-    page = (SRC / "index.html.tmpl").read_text(encoding="utf-8")
-    for key, val in {
-        "VIDEO": video,
-        "DOWNLOADS": downloads,
-        "META": meta,
-        "SLIDES": slides,
-        "N_SLIDES": str(n_slides),
-        "N_QUIZ": str(len(quiz["items"])),
+    files = "\n".join(f'<a href="{base}{f}" download><code>{Path(f).name}</code><small>{esc(d)}</small></a>'
+                      for f, d in t["files"])
+    fill = {k: v for k, v in t.items() if isinstance(v, str)}
+    fill.update({
+        "base": base,
+        "slides_intro": t["slides_intro"].format(n=n_slides),
+        "quiz_intro": t["quiz_intro"].format(n=len(quiz["items"])),
+        "VIDEO": video_html, "DOWNLOADS": downloads, "META": meta, "SLIDES": slides,
+        "LAB_ITEMS": "\n".join(f"<li>{esc(x)}</li>" for x in t["lab_items"]),
         "QUIZ_JSON": json.dumps(quiz, ensure_ascii=False).replace("</", "<\\/"),
-        "EXAMPLES_HTML": render_markdown(module / "EXAMPLES.md"),
+        "EXAMPLES_HTML": render_markdown(examples_md),
         "EXAMPLE_FILES": files,
-        "TRANSCRIPT": transcript_html(module),
-        "COURSE_URL": COURSE_URL,
-    }.items():
-        page = page.replace("{{" + key + "}}", val)
+        "TRANSCRIPT": transcript_html(media / "transcript.md"),
+    })
+    page = (SRC / "index.html.tmpl").read_text(encoding="utf-8")
+    page = re.sub(r"\{\{(\w+)\}\}", lambda m: fill[m.group(1)] if m.group(1) in fill else die(f"no text for {{{{{m.group(1)}}}}}"), page)
     (out / "index.html").write_text(page, encoding="utf-8")
+    return {"slides": n_slides, "video": has_video, "subs": has_subs}
 
 
 # ---------------------------------------------------------------- main
@@ -263,8 +338,7 @@ def main() -> int:
     ap.add_argument("--out", default=HERE / "docs", type=Path, help="output folder (default: docs/)")
     args = ap.parse_args()
     repo = args.repo.expanduser().resolve()
-    module = repo / MODULE_REL
-    if not (module / "transcript.md").is_file() or not (repo / TOOL_REL / "index.html").is_file():
+    if not (repo / MODULE_REL / "transcript.md").is_file() or not (repo / TOOL_REL / "index.html").is_file():
         die(f"{repo} does not look like eda-learning with the Lab 02 patch applied")
 
     out = args.out.resolve()
@@ -272,48 +346,17 @@ def main() -> int:
         shutil.rmtree(out)
     out.mkdir(parents=True)
     (out / ".nojekyll").write_text("", encoding="utf-8")
-
-    # Static files straight from the module.
-    for name in ["slides.pdf", "slides.pptx", "quiz.json", "transcript.md"]:
-        shutil.copy2(module / name, out / name)
-    (out / "examples").mkdir()
-    for f, _ in EXAMPLE_FILES:
-        shutil.copy2(module / f, out / f)
-    (out / "img").mkdir()
-    for name in ["lab-starter.png", "priority-graph.png", "real-shell.png"]:
-        shutil.copy2(module / "assets" / name, out / "img" / name)
     shutil.copy2(SRC / "page.css", out / "page.css")
     shutil.copy2(SRC / "quiz.js", out / "quiz.js")
+    (out / "examples").mkdir()
+    for f, _ in LANGS["en"]["files"]:  # code files are shared by both languages
+        shutil.copy2(repo / MODULE_REL / f, out / f)
 
-    n_slides = render_slides(module, out)
-
-    video = module / "video.mp4"
-    timings = module / "audio/slide_timings.json"
-    has_video = video.is_file()
-    has_subs, runtime = False, ""
-    if has_video:
-        newest_source = max((module / f).stat().st_mtime for f in ["transcript.md", "slides.pptx"])
-        if video.stat().st_mtime < newest_source:
-            print("WARNING: video.mp4 is older than transcript.md/slides.pptx — rerun narrate_clips.sh", file=sys.stderr)
-        shutil.copy2(video, out / "video.mp4")
-        if timings.is_file():
-            durs = json.loads(timings.read_text(encoding="utf-8"))
-            if len(durs) != n_slides:
-                print(f"WARNING: {len(durs)} timings for {n_slides} slides — subtitles may drift", file=sys.stderr)
-            cues = build_cues(repo, module)
-            write_subtitles(cues, out)
-            has_subs = True
-            total = sum(float(d["duration"]) for d in durs)
-            runtime = f"{int(total // 60)}:{int(total % 60):02d}"
-    else:
-        print("NOTE: no video.mp4 yet — the page shows a placeholder. Run narrate_clips.sh, then rebuild.")
-
-    copy_lab(repo, out)
-    build_page(module, out, n_slides, has_video, has_subs, runtime)
-
+    report = {"en": build_language(repo, out, "en", ""), "fr": build_language(repo, out / "fr", "fr", "../")}
     size = sum(p.stat().st_size for p in out.rglob("*") if p.is_file()) / 1e6
-    print(f"Built {out} — {n_slides} slides, video: {'yes' if has_video else 'no'}, "
-          f"subtitles: {'yes' if has_subs else 'no'}, {size:.1f} MB")
+    for lang, r in report.items():
+        print(f"[{lang}] {r['slides']} slides, video: {'yes' if r['video'] else 'no'}, subtitles: {'yes' if r['subs'] else 'no'}")
+    print(f"Built {out} ({size:.1f} MB)")
     return 0
 
 

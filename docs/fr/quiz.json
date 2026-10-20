@@ -1,0 +1,66 @@
+{
+  "module": "module01-01-affinity-metrics",
+  "title": "Quiz : métriques d'affinité",
+  "passing_score": 0.67,
+  "items": [
+    {
+      "id": "q1",
+      "type": "multiple_choice",
+      "prompt": "Avec l'affinité par simple poids d'arête sur le graphe de départ, le meilleur score est…",
+      "choices": ["A–C à 1", "A–B (et D–E) à 5", "B–C à 4", "C–D à 2"],
+      "answer": 1,
+      "explain": "Les arêtes les plus lourdes sont A–B et D–E, de poids 5."
+    },
+    {
+      "id": "q2",
+      "type": "true_false",
+      "prompt": "L'affinité par voisins communs peut faire monter le score d'une paire au-dessus du poids de son arête directe.",
+      "answer": true,
+      "explain": "Le soutien des voisins communs s'ajoute au poids direct."
+    },
+    {
+      "id": "q3",
+      "type": "multiple_choice",
+      "prompt": "Sur le graphe de départ, le score voisins communs + arête de A–B vaut…",
+      "choices": ["5", "6", "4", "1"],
+      "answer": 1,
+      "explain": "5 + min(A–C, B–C) = 5 + 1 = 6."
+    },
+    {
+      "id": "q4",
+      "type": "multiple_choice",
+      "prompt": "Pourquoi A–C monte-t-elle avec le score par voisins communs ?",
+      "choices": [
+        "Parce que A–C est l'arête directe la plus lourde",
+        "Parce que A et C ont en commun le voisin B, relié fortement aux deux",
+        "Parce que D–E disparaît",
+        "Parce que la taille de coupe ignore l'affinité"
+      ],
+      "answer": 1,
+      "explain": "min(A–B, C–B) = 4 vient renforcer la faible arête A–C."
+    },
+    {
+      "id": "q5",
+      "type": "multiple_choice",
+      "prompt": "Sur le graphe de priorité (triangle P–Q–R aux arêtes de poids 4, paire isolée X–Y de poids 5), quelle paire fusionne en premier avec le score voisins communs + arête ?",
+      "choices": ["X–Y à 5", "P–Q à 8", "P–Q à 4", "X–Y à 10"],
+      "answer": 1,
+      "explain": "P–Q = 4 + via R min(4,4) = 8. X–Y n'a aucun voisin commun et reste à 5. Le poids d'arête seul aurait fusionné X–Y en premier."
+    },
+    {
+      "id": "q6",
+      "type": "multiple_choice",
+      "prompt": "Avec l'affinité par nombre de broches w(e)/(|e|−1), qu'ajoute un net à 5 broches de poids 1 à chaque paire de ses broches ?",
+      "choices": ["1", "0.5", "0.25", "0.2"],
+      "answer": 2,
+      "explain": "1 / (5 − 1) = 0.25. Les nets larges, comme le reset ou l'enable, répartissent leur poids et ne collent pas toutes les cellules ensemble."
+    },
+    {
+      "id": "q7",
+      "type": "true_false",
+      "prompt": "Avec le score par voisins communs, B–D obtient un score de 2 alors qu'il n'existe aucune arête B–D.",
+      "answer": true,
+      "explain": "B et D ont en commun le voisin C : min(w(B,C), w(D,C)) = min(4, 2) = 2. Seules les paires de score total 0 sont exclues."
+    }
+  ]
+}

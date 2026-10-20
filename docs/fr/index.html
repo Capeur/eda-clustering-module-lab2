@@ -1,0 +1,431 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Lab 02 — Métriques d'affinité · Clustering pour l'EDA</title>
+  <meta name="description" content="Lab 02 du cours Clustering pour l'EDA : affinité par poids d'arête, par voisins communs et par nombre de broches, avec vidéo commentée, diapositives, lab interactif dans le navigateur et quiz.">
+  <link rel="alternate" hreflang="en" href="../index.html">
+  <link rel="stylesheet" href="../page.css">
+</head>
+<body>
+  <header class="top">
+    <div class="wrap">
+      <span class="crumb">Clustering pour l'EDA · <strong>Lab 02</strong></span>
+      <nav class="toc" aria-label="Sur cette page">
+        <a href="#video">Vidéo</a>
+        <a href="#slides">Diapositives</a>
+        <a href="#lab">Lab interactif</a>
+        <a href="#implement">Implémentation</a>
+        <a href="#quiz">Quiz</a>
+        <a href="#transcript">Transcription</a>
+        <a class="lang-switch" href="../index.html" hreflang="en" lang="en" title="Read this page in English">English</a>
+      </nav>
+    </div>
+  </header>
+
+  <main class="wrap">
+    <div class="hero">
+      <p class="eyebrow">Lab 02 · Fondamentaux</p>
+      <h1>Métriques d'affinité</h1>
+      <p class="lead">Avant qu'un algorithme de clustering fusionne deux cellules, il lui faut un score qui dit à quel point elles vont ensemble. Ce lab compare trois scores (poids d'arête, voisins communs, et nombre de broches pour les nets à plusieurs broches) et montre que ce choix change la paire qui fusionne en premier.</p>
+    </div>
+
+    <section id="video">
+      <div class="card video-card">
+        <video controls preload="metadata" poster="slides/01.png"><source src="video.mp4" type="video/mp4"><track kind="subtitles" src="subs.vtt" srclang="fr" label="Français" default>Votre navigateur ne prend pas en charge la balise vidéo.</video>
+        <p class="meta"><strong>5:21</strong> · 17 diapositives · narration en français et sous-titres</p>
+        <div class="btns"><a class="btn" href="video.mp4" download>Télécharger la vidéo (MP4)</a><a class="btn" href="subs.srt" download>Sous-titres (SRT)</a></div>
+      </div>
+    </section>
+
+    <section id="slides">
+      <h2>Diapositives</h2>
+      <p>Les 17 diapositives de la vidéo. Cliquez sur l'une d'elles pour l'afficher en grand, ou téléchargez la présentation complète.</p>
+      <div class="btns" style="margin-bottom:1rem">
+        <a class="btn" href="slides.pdf">Diapositives (PDF)</a>
+        <a class="btn" href="slides.pptx" download>Diapositives (PowerPoint)</a>
+      </div>
+      <div class="slides">
+        <figure><a href="slides/01.png"><img src="slides/01.png" loading="lazy" alt="Diapositive 1: Métriques d&#x27;affinité"></a><figcaption><b>01</b>Métriques d&#x27;affinité</figcaption></figure>
+<figure><a href="slides/02.png"><img src="slides/02.png" loading="lazy" alt="Diapositive 2: Un petit graphe pondéré"></a><figcaption><b>02</b>Un petit graphe pondéré</figcaption></figure>
+<figure><a href="slides/03.png"><img src="slides/03.png" loading="lazy" alt="Diapositive 3: L&#x27;affinité par poids d&#x27;arête classe les paires"></a><figcaption><b>03</b>L&#x27;affinité par poids d&#x27;arête classe les paires</figcaption></figure>
+<figure><a href="slides/04.png"><img src="slides/04.png" loading="lazy" alt="Diapositive 4: Les voisins communs renforcent A–B"></a><figcaption><b>04</b>Les voisins communs renforcent A–B</figcaption></figure>
+<figure><a href="slides/05.png"><img src="slides/05.png" loading="lazy" alt="Diapositive 5: Le classement par voisins communs rebat les cartes"></a><figcaption><b>05</b>Le classement par voisins communs rebat les cartes</figcaption></figure>
+<figure><a href="slides/06.png"><img src="slides/06.png" loading="lazy" alt="Diapositive 6: Pourquoi l&#x27;affinité compte en EDA"></a><figcaption><b>06</b>Pourquoi l&#x27;affinité compte en EDA</figcaption></figure>
+<figure><a href="slides/07.png"><img src="slides/07.png" loading="lazy" alt="Diapositive 7: Le score par voisins communs en pseudo-code"></a><figcaption><b>07</b>Le score par voisins communs en pseudo-code</figcaption></figure>
+<figure><a href="slides/08.png"><img src="slides/08.png" loading="lazy" alt="Diapositive 8: Le score par voisins communs en pseudo-code — à essayer"></a><figcaption><b>08</b>Le score par voisins communs en pseudo-code — à essayer</figcaption></figure>
+<figure><a href="slides/09.png"><img src="slides/09.png" loading="lazy" alt="Diapositive 9: Dix paires, pas six"></a><figcaption><b>09</b>Dix paires, pas six</figcaption></figure>
+<figure><a href="slides/10.png"><img src="slides/10.png" loading="lazy" alt="Diapositive 10: Même graphe, première fusion différente"></a><figcaption><b>10</b>Même graphe, première fusion différente</figcaption></figure>
+<figure><a href="slides/11.png"><img src="slides/11.png" loading="lazy" alt="Diapositive 11: Des nets à nombreuses broches"></a><figcaption><b>11</b>Des nets à nombreuses broches</figcaption></figure>
+<figure><a href="slides/12.png"><img src="slides/12.png" loading="lazy" alt="Diapositive 12: Des nets à nombreuses broches — à essayer"></a><figcaption><b>12</b>Des nets à nombreuses broches — à essayer</figcaption></figure>
+<figure><a href="slides/13.png"><img src="slides/13.png" loading="lazy" alt="Diapositive 13: Le parcours lab dans le navigateur"></a><figcaption><b>13</b>Le parcours lab dans le navigateur</figcaption></figure>
+<figure><a href="slides/14.png"><img src="slides/14.png" loading="lazy" alt="Diapositive 14: Le parcours implémentation"></a><figcaption><b>14</b>Le parcours implémentation</figcaption></figure>
+<figure><a href="slides/15.png"><img src="slides/15.png" loading="lazy" alt="Diapositive 15: Le parcours implémentation — à essayer"></a><figcaption><b>15</b>Le parcours implémentation — à essayer</figcaption></figure>
+<figure><a href="slides/16.png"><img src="slides/16.png" loading="lazy" alt="Diapositive 16: Les pièges à éviter"></a><figcaption><b>16</b>Les pièges à éviter</figcaption></figure>
+<figure><a href="slides/17.png"><img src="slides/17.png" loading="lazy" alt="Diapositive 17: À vous de jouer"></a><figcaption><b>17</b>À vous de jouer</figcaption></figure>
+      </div>
+    </section>
+
+    <section id="lab">
+      <h2>Lab interactif</h2>
+      <div class="card lab-grid">
+        <a href="tools/affinity-metrics/index.html"><img src="img/lab-starter.png" alt="Le lab des métriques d'affinité : un graphe à gauche, la saisie du score et votre classement à droite"></a>
+        <div>
+          <p>Faites les calculs vous-même, directement dans le navigateur :</p>
+          <ul>
+            <li>Choisissez n&#x27;importe quelle paire de nœuds, même sans arête, calculez son score à la main et vérifiez-le.</li>
+<li>Construisez votre propre classement, dans l&#x27;ordre. Le départage compte.</li>
+<li>Modifiez les poids des arêtes et regardez quelle paire fusionne en premier.</li>
+<li>Trois graphes (départ, priorité, petite netlist) et quatre scores.</li>
+          </ul>
+          <p>Dix défis, de l'initiation à l'approfondissement, vérifient vos propres réponses. Les aides à la révision sont là si vous bloquez, mais ce qu'elles révèlent ne compte plus.</p>
+          <div class="btns"><a class="btn primary" href="tools/affinity-metrics/index.html">Ouvrir le lab</a></div>
+        </div>
+      </div>
+    </section>
+
+    <section id="implement">
+      <h2>Implémentation (parcours A)</h2>
+      <p>Écrivez vous-même les trois fonctions de score et vérifiez-les avec les résultats de référence. Les commandes ci-dessous se lancent dans le <a href="https://github.com/yongfu-li/eda-learning">dépôt du cours</a>, depuis <code>courses/learn_clustering/module01-01-affinity-metrics/</code>.</p>
+      <div class="files">
+        <a href="../examples/tiny_graph.json" download><code>tiny_graph.json</code><small>Graphe de départ (référence 1)</small></a>
+<a href="../examples/priority_graph.json" download><code>priority_graph.json</code><small>Graphe de priorité : la première fusion s&#x27;inverse (référence 2)</small></a>
+<a href="../examples/tiny_netlist.json" download><code>tiny_netlist.json</code><small>Petite netlist avec nets larges (référence 3)</small></a>
+<a href="../examples/affinity_check.py" download><code>affinity_check.py</code><small>Vérificateur ; --impl contrôle votre code</small></a>
+      </div>
+      <div class="card md">
+        <h1>Exemples — Métriques d'affinité</h1>
+<p>Parcours A (implémentation). Fonctions partagées : <code>../common/graphutil.py</code>.</p>
+<h2>Objectif</h2>
+<p>Définir <strong>trois</strong> scores d'affinité, les calculer à la main et en code, et montrer que le
+choix du score <strong>change la paire qui fusionne en premier</strong>.</p>
+<p>L'affinité répond à une seule question pour chaque paire de cellules : <em>à quel point ces deux-là
+veulent-elles être dans le même cluster ?</em> Tous les algorithmes de clustering de la suite du cours
+(fusion gloutonne, réduction multiniveau, clustering d'hypergraphe) partent d'un tel classement :
+un mauvais score donne de mauvaises fusions, que le raffinement devra réparer ensuite.</p>
+<table>
+<thead>
+<tr>
+<th>Score</th>
+<th>S'applique à</th>
+<th>Idée</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Poids d'arête</td>
+<td>graphe</td>
+<td>connexion directe uniquement</td>
+</tr>
+<tr>
+<td>Voisins communs + arête</td>
+<td>graphe</td>
+<td>connexion directe <strong>plus</strong> le soutien des voisins communs (« connectivité »)</td>
+</tr>
+<tr>
+<td>Nombre de broches (modèle en clique)</td>
+<td>netlist</td>
+<td>chaque net répartit son poids entre ses broches, donc les nets larges comptent moins</td>
+</tr>
+</tbody>
+</table>
+<h2>API (cible)</h2>
+<pre><code class="language-text">affinity_edge_weight(edges) -&gt; list[(u, v, score)]                # trié
+affinity_shared_neighbors(nodes, edges) -&gt; list[(u, v, score)]    # trié
+affinity_pin_count(nodes, hyperedges) -&gt; list[(u, v, score)]      # trié
+</code></pre>
+<p><strong>Trié</strong> veut dire : score décroissant, puis <code>u</code>, puis <code>v</code> par ordre alphabétique. Ce <strong>départage</strong>
+fait partie de l'API : A–B et D–E valent toutes les deux 5, et le résultat de référence met A–B en
+premier car A &lt; D. Les labs suivants (fusion gloutonne) prennent la première paire : un départage
+instable change donc leurs résultats.</p>
+<h2>Définitions</h2>
+<p><strong>Affinité par poids d'arête</strong></p>
+<pre><code class="language-text">score(u,v) = w(u,v)
+</code></pre>
+<p><strong>Affinité par voisins communs + arête</strong></p>
+<pre><code class="language-text">score(u,v) = w(u,v) + somme_x min(w(u,x), w(v,x))
+             sur les voisins communs x
+</code></pre>
+<p><code>w(u,v)</code> vaut 0 s'il n'y a pas d'arête directe. Une paire sans arête mais avec un voisin commun
+obtient quand même un score (B–D ci-dessous). Les paires dont le score vaudrait 0 ne sont <strong>pas</strong>
+listées. Le <code>min</code> signifie qu'un voisin ne soutient une paire qu'autant que son rayon <strong>le plus faible</strong>.</p>
+<p><strong>Affinité par nombre de broches (modèle en clique)</strong> pour les netlists, où un net peut relier
+de nombreuses broches :</p>
+<pre><code class="language-text">score(u,v) = somme, sur les nets e contenant u et v, de  w(e) / (|e| - 1)
+</code></pre>
+<p><code>|e|</code> est le nombre de broches du net. Un net à 2 broches donne tout son poids ; un net à 5 broches
+ne donne qu'un quart à chaque paire. Les nets larges comme le reset, l'enable ou l'horloge touchent
+de nombreuses cellules et ne doivent pas toutes les coller ensemble.</p>
+<h2>Pseudo-code</h2>
+<pre><code class="language-text">affinity_shared_neighbors(nodes, edges):
+  adj = table d'adjacence, adj[u][v] = w(u,v) (dans les deux sens)
+  score = {}
+  pour (u, v, w) dans edges : score[u,v] += w     # partie directe
+  pour chaque paire non ordonnée (u, v) de nœuds :
+    s = 0
+    pour x dans voisins(u), x != v :
+      si x dans voisins(v) :
+        s += min(adj[u][x], adj[v][x])
+    si s &gt; 0 ou (u,v) dans score : score[u,v] += s
+  renvoyer les paires triées par (-score, u, v)
+</code></pre>
+<pre><code class="language-text">affinity_pin_count(nodes, nets):
+  score = {}
+  pour chaque net e de broches P (|P| &gt;= 2) :
+    part = w(e) / (|P| - 1)
+    pour chaque paire (u, v) de P : score[u,v] += part
+  renvoyer les paires triées par (-score, u, v)
+</code></pre>
+<h2>Référence 1 — graphe de départ (<code>examples/tiny_graph.json</code>)</h2>
+<p>Arêtes : A–B 5, A–C 1, B–C 4, C–D 2, D–E 5, C–E 1.</p>
+<p><strong>Poids d'arête</strong> (exactement les six arêtes existantes) :</p>
+<table>
+<thead>
+<tr>
+<th>Rang</th>
+<th>Paire</th>
+<th>Score</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>1</td>
+<td>A–B</td>
+<td>5</td>
+</tr>
+<tr>
+<td>2</td>
+<td>D–E</td>
+<td>5</td>
+</tr>
+<tr>
+<td>3</td>
+<td>B–C</td>
+<td>4</td>
+</tr>
+<tr>
+<td>4</td>
+<td>C–D</td>
+<td>2</td>
+</tr>
+<tr>
+<td>5</td>
+<td>A–C</td>
+<td>1</td>
+</tr>
+<tr>
+<td>6</td>
+<td>C–E</td>
+<td>1</td>
+</tr>
+</tbody>
+</table>
+<p><strong>Voisins communs + arête</strong> (dix paires : les six arêtes, plus quatre paires qui n'ont qu'un voisin en commun) :</p>
+<table>
+<thead>
+<tr>
+<th>Rang</th>
+<th>Paire</th>
+<th>Score</th>
+<th>Pourquoi</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>1</td>
+<td>A–B</td>
+<td>6</td>
+<td>5 + via C min(1,4)=1</td>
+</tr>
+<tr>
+<td>2</td>
+<td>D–E</td>
+<td>6</td>
+<td>5 + via C min(2,1)=1</td>
+</tr>
+<tr>
+<td>3</td>
+<td>A–C</td>
+<td>5</td>
+<td>1 + via B min(5,4)=4</td>
+</tr>
+<tr>
+<td>4</td>
+<td>B–C</td>
+<td>5</td>
+<td>4 + via A min(5,1)=1</td>
+</tr>
+<tr>
+<td>5</td>
+<td>C–D</td>
+<td>3</td>
+<td>2 + via E min(1,5)=1</td>
+</tr>
+<tr>
+<td>6</td>
+<td>C–E</td>
+<td>3</td>
+<td>1 + via D min(2,5)=2</td>
+</tr>
+<tr>
+<td>7</td>
+<td>B–D</td>
+<td>2</td>
+<td>pas d'arête ; via C min(4,2)=2</td>
+</tr>
+<tr>
+<td>8</td>
+<td>A–D</td>
+<td>1</td>
+<td>pas d'arête ; via C min(1,2)=1</td>
+</tr>
+<tr>
+<td>9</td>
+<td>A–E</td>
+<td>1</td>
+<td>pas d'arête ; via C min(1,1)=1</td>
+</tr>
+<tr>
+<td>10</td>
+<td>B–E</td>
+<td>1</td>
+<td>pas d'arête ; via C min(4,1)=1</td>
+</tr>
+</tbody>
+</table>
+<p>L'arête faible A–C passe du rang 5 au rang 3, car A et C sont tous les deux fortement reliés à B :
+le triangle A–B–C forme un groupe dense.</p>
+<h2>Référence 2 — l'affinité change la première fusion (<code>examples/priority_graph.json</code>)</h2>
+<p>Un triangle serré P–Q–R (chaque arête pèse 4) et une paire isolée X–Y (poids 5).</p>
+<table>
+<thead>
+<tr>
+<th>Score</th>
+<th>Première fusion</th>
+<th>Pourquoi</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Poids d'arête</td>
+<td><strong>X–Y @ 5</strong></td>
+<td>l'arête la plus lourde</td>
+</tr>
+<tr>
+<td>Voisins communs + arête</td>
+<td><strong>P–Q @ 8</strong></td>
+<td>4 + via R min(4,4)=4 ; X–Y n'a aucun voisin commun et reste à 5</td>
+</tr>
+</tbody>
+</table>
+<p>Même graphe, même algorithme, première fusion différente. C'est pourquoi le choix de l'affinité
+est une décision de conception, pas un détail.</p>
+<h2>Référence 3 — les nets larges (<code>examples/tiny_netlist.json</code>)</h2>
+<p>Deux nets à 5 broches (<code>en</code>, <code>rst</code>) touchent A–E ; un net privé à 2 broches relie E–F. Tous les poids valent 1.</p>
+<table>
+<thead>
+<tr>
+<th>Score</th>
+<th>A–B (et chaque paire de A–E)</th>
+<th>E–F</th>
+<th>Première fusion</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Nombre brut de nets (somme des w)</td>
+<td>2</td>
+<td>1</td>
+<td>A–B</td>
+</tr>
+<tr>
+<td>Nombre de broches, w/(|e|−1)</td>
+<td>1/4 + 1/4 = <strong>0.5</strong></td>
+<td><strong>1.0</strong></td>
+<td><strong>E–F</strong></td>
+</tr>
+</tbody>
+</table>
+<p>Compter naïvement les nets partagés dit que A–B vont ensemble simplement parce qu'elles voient toutes
+les deux l'enable et le reset. Le score par nombre de broches dit que E–F, la seule paire reliée par
+une connexion privée, compte davantage. Le clustering d'une netlist devient du clustering d'hypergraphe
+(module 03-03) ; ce score fait le lien.</p>
+<h2>À essayer</h2>
+<p>Depuis le dossier de ce module :</p>
+<pre><code class="language-bash"># indiquer à Python où sont les fonctions partagées
+export PYTHONPATH=../common
+
+# afficher les deux classements du graphe de départ
+python3 ../common/solvers.py examples/tiny_graph.json --mode affinity
+
+# idem pour le graphe de priorité : comparez la première ligne de chaque tableau
+python3 ../common/solvers.py examples/priority_graph.json --mode affinity
+
+# vérifier tous les résultats de référence et afficher les classements, nombre de broches compris
+python3 examples/affinity_check.py --show
+
+# vérifier VOTRE implémentation (les fonctions pas encore écrites sont ignorées)
+python3 examples/affinity_check.py --impl my_affinity.py
+</code></pre>
+<p>Tests unitaires des fonctions partagées, depuis <code>courses/learn_clustering</code> :</p>
+<pre><code class="language-bash">PYTHONPATH=common python3 -m unittest common.test_solvers.TestFoundations -v
+</code></pre>
+<h2>Pour démarrer</h2>
+<ol>
+<li>Calculez <strong>à la main</strong> le score par voisins communs de A–C, B–D et C–E, puis comparez avec la référence 1.</li>
+<li>Implémentez <code>affinity_edge_weight</code> et <code>affinity_shared_neighbors</code> ; lancez
+   <code>affinity_check.py --impl</code> jusqu'à ce que les vérifications sur les graphes passent. (Il fournit les
+   arêtes dans l'ordre inverse : un départage oublié échoue.)</li>
+<li>Expliquez en une phrase pourquoi A–C monte avec le score par voisins communs.</li>
+<li>Sur le graphe de priorité, expliquez pourquoi la première fusion change d'un score à l'autre.</li>
+<li>Implémentez <code>affinity_pin_count</code>. Expliquez pourquoi A–B tombe à 0.5 alors que E–F reste à 1.</li>
+<li>Pour aller plus loin : copiez le graphe de départ et passez D–E de 5 à 6. Prédisez d'abord les deux
+   classements, puis lancez le solveur sur votre copie. Quelle paire est maintenant en tête, et A–C
+   monte-t-elle toujours ?</li>
+</ol>
+      </div>
+    </section>
+
+    <section id="quiz">
+      <h2>Quiz</h2>
+      <p>7 questions rapides sur ce lab. Choisissez une réponse pour chacune, puis vérifiez.</p>
+      <div class="card quiz" id="quiz-root"
+           data-check="Vérifier mes réponses" data-reset="Recommencer" data-pass="réussi"
+           data-fail="réessayez" data-true="Vrai" data-false="Faux"></div>
+      <script type="application/json" id="quiz-data">{"module": "module01-01-affinity-metrics", "title": "Quiz : métriques d'affinité", "passing_score": 0.67, "items": [{"id": "q1", "type": "multiple_choice", "prompt": "Avec l'affinité par simple poids d'arête sur le graphe de départ, le meilleur score est…", "choices": ["A–C à 1", "A–B (et D–E) à 5", "B–C à 4", "C–D à 2"], "answer": 1, "explain": "Les arêtes les plus lourdes sont A–B et D–E, de poids 5."}, {"id": "q2", "type": "true_false", "prompt": "L'affinité par voisins communs peut faire monter le score d'une paire au-dessus du poids de son arête directe.", "answer": true, "explain": "Le soutien des voisins communs s'ajoute au poids direct."}, {"id": "q3", "type": "multiple_choice", "prompt": "Sur le graphe de départ, le score voisins communs + arête de A–B vaut…", "choices": ["5", "6", "4", "1"], "answer": 1, "explain": "5 + min(A–C, B–C) = 5 + 1 = 6."}, {"id": "q4", "type": "multiple_choice", "prompt": "Pourquoi A–C monte-t-elle avec le score par voisins communs ?", "choices": ["Parce que A–C est l'arête directe la plus lourde", "Parce que A et C ont en commun le voisin B, relié fortement aux deux", "Parce que D–E disparaît", "Parce que la taille de coupe ignore l'affinité"], "answer": 1, "explain": "min(A–B, C–B) = 4 vient renforcer la faible arête A–C."}, {"id": "q5", "type": "multiple_choice", "prompt": "Sur le graphe de priorité (triangle P–Q–R aux arêtes de poids 4, paire isolée X–Y de poids 5), quelle paire fusionne en premier avec le score voisins communs + arête ?", "choices": ["X–Y à 5", "P–Q à 8", "P–Q à 4", "X–Y à 10"], "answer": 1, "explain": "P–Q = 4 + via R min(4,4) = 8. X–Y n'a aucun voisin commun et reste à 5. Le poids d'arête seul aurait fusionné X–Y en premier."}, {"id": "q6", "type": "multiple_choice", "prompt": "Avec l'affinité par nombre de broches w(e)/(|e|−1), qu'ajoute un net à 5 broches de poids 1 à chaque paire de ses broches ?", "choices": ["1", "0.5", "0.25", "0.2"], "answer": 2, "explain": "1 / (5 − 1) = 0.25. Les nets larges, comme le reset ou l'enable, répartissent leur poids et ne collent pas toutes les cellules ensemble."}, {"id": "q7", "type": "true_false", "prompt": "Avec le score par voisins communs, B–D obtient un score de 2 alors qu'il n'existe aucune arête B–D.", "answer": true, "explain": "B et D ont en commun le voisin C : min(w(B,C), w(D,C)) = min(4, 2) = 2. Seules les paires de score total 0 sont exclues."}]}</script>
+    </section>
+
+    <section id="transcript">
+      <details class="card transcript">
+        <summary>Transcription complète de la narration</summary>
+        <h3>Métriques d&#x27;affinité</h3><p>Avant de fusionner des cellules ou de réduire une netlist, il faut savoir lesquelles vont ensemble. Ce score, c&#x27;est l&#x27;affinité. Vous allez comparer le poids d&#x27;arête et le score par voisins communs. Les deux sont testés sur le même petit graphe, pour voir qui fusionne en premier. Ensuite, vous verrez un graphe où ces deux scores ne sont pas d&#x27;accord. Enfin, un troisième score traite les vraies netlists, où un seul net touche de nombreuses cellules.</p>
+<h3>Un petit graphe pondéré</h3><p>Cinq cellules, de A à E, reliées par des arêtes pondérées. Les arêtes lourdes A–B et D–E pèsent toutes les deux cinq ; le pont qui passe par C est plus faible. C&#x27;est l&#x27;affinité qui va décider quelles paires veulent former un cluster en premier.</p>
+<h3>L&#x27;affinité par poids d&#x27;arête classe les paires</h3><p>L&#x27;affinité par poids d&#x27;arête se contente de trier les arêtes existantes. A–B et D–E sont à égalité à cinq ; le départage place A–B en premier. Ce classement est la priorité de fusion la plus simple.</p>
+<h3>Les voisins communs renforcent A–B</h3><p>A et B partagent déjà une arête de poids cinq. Ils ont aussi un voisin commun : C. L&#x27;affinité par voisins communs ajoute le plus petit des deux rayons, c&#x27;est-à-dire un, donc A–B monte à six.</p>
+<h3>Le classement par voisins communs rebat les cartes</h3><p>Avec le score par voisins communs, A–B et D–E mènent à six. L&#x27;arête faible A–C bondit à cinq grâce à B. Des paires sans arête, comme B–D, peuvent apparaître uniquement grâce à leurs voisins communs.</p>
+<h3>Pourquoi l&#x27;affinité compte en EDA</h3><p>L&#x27;affinité, c&#x27;est la préférence locale de l&#x27;objectif : quelles cellules vont ensemble, avant les contraintes globales. Une mauvaise affinité donne de mauvaises fusions, et un raffinement plus difficile ensuite.</p>
+<h3>Le score par voisins communs en pseudo-code</h3><p>Voici le score par voisins communs sous forme de code. D&#x27;abord, chaque arête existante ajoute son poids à sa paire. Ensuite, on prend chaque paire de nœuds et chacun de leurs voisins communs. Pour chaque voisin commun, on ajoute le plus petit des deux poids vers la paire. Une paire dont le score dépasse zéro est gardée. Enfin, on trie par score décroissant, et on départage les égalités par ordre alphabétique. Ainsi, la liste est toujours la même.</p>
+<h3>Dix paires, pas six</h3><p>Avec le score par voisins communs, le graphe de départ donne dix paires, et non six. Quatre d&#x27;entre elles n&#x27;ont aucune arête. B et D sont tous les deux reliés à C, donc B–D obtient le plus petit rayon : deux. A–D, A–E et B–E gagnent chacune un, en passant par C. Ces paires ne sont pas des erreurs. Elles disent que deux cellules sont proches, même sans fil direct. Une paire n&#x27;est exclue que si son score vaut zéro.</p>
+<h3>Même graphe, première fusion différente</h3><p>Prenons un triangle serré P, Q, R, dont chaque arête pèse quatre. Ajoutons une paire isolée X–Y, de poids cinq. Le poids d&#x27;arête choisit d&#x27;abord X–Y, car cinq bat quatre. Le score par voisins communs donne à P–Q quatre, plus quatre via R : huit. X–Y n&#x27;a aucun voisin commun, donc reste à cinq. Même graphe, même moteur de fusion, mais une première fusion différente.</p>
+<h3>Des nets à nombreuses broches</h3><p>Les vraies netlists ne sont pas faites de simples arêtes. Un seul net peut relier de nombreuses cellules, comme une ligne de reset ou d&#x27;enable. Compter chaque net partagé à plein poids rapproche A et B à tort. Elles semblent proches simplement parce qu&#x27;elles voient toutes les deux le reset. Le score par nombre de broches corrige cela. Chaque net divise son poids par son nombre de broches moins un. Un net à deux broches compte donc entièrement. Un net à cinq broches ne donne qu&#x27;un quart à chaque paire.</p>
+<h3>Le parcours lab dans le navigateur</h3><p>Dans le lab du navigateur, c&#x27;est vous qui calculez les scores. Cliquez sur deux nœuds pour choisir une paire, même une paire sans arête, calculez son score à la main, puis saisissez-le. Vous pouvez aussi construire votre propre classement, une paire à la fois, et modifier les poids des arêtes pour voir quelle paire fusionne en premier. Vous pouvez passer d&#x27;un graphe à l&#x27;autre et d&#x27;un score à l&#x27;autre. Les dix défis vérifient ce que vous avez saisi, votre classement et vos modifications. Le détail du calcul et le classement complet sont là pour réviser, mais tout ce qu&#x27;ils révèlent ne compte plus.</p>
+<h3>Le parcours implémentation</h3><p>Dans le parcours implémentation, affichez les deux classements pour le graphe de départ, puis pour le graphe de priorité, et comparez la première ligne de chaque tableau. Ensuite, écrivez vos propres fonctions de score, y compris le nombre de broches, et lancez le vérificateur sur votre fichier. Il contrôle les trois scores, et il fournit les arêtes dans le désordre : un départage oublié apparaît donc comme un échec.</p>
+<h3>Les pièges à éviter</h3><p>Attention à quatre choses. Compter deux fois une arête non orientée, une fois depuis chaque extrémité. Ajouter le plus grand rayon au lieu du plus petit, ce qui rend tout proche de tout. Oublier le départage : A–B et D–E changent alors de place d&#x27;une exécution à l&#x27;autre. Et compter les nets bruts sur une netlist. Des nets très larges comme le reset collent alors des cellules sans rapport.</p>
+<h3>À vous de jouer</h3><p>Faites passer les trois vérifications de référence. Puis expliquez pourquoi A–C monte avec le score par voisins communs. Expliquez aussi pourquoi le graphe de priorité change sa première fusion. Faites le petit quiz. Passez ensuite à la fusion gloutonne par paires, où ces scores deviennent la règle.</p>
+      </details>
+    </section>
+  </main>
+
+  <footer>
+    <div class="wrap">Lab 02 du cours Clustering pour l'EDA, issu de l'<a href="https://github.com/yongfu-li/eda-learning">EDA Algorithms Platform</a> (CC BY 4.0). Version de relecture, pas encore intégrée au dépôt du cours.</div>
+  </footer>
+  <script>
+    // Keep the reader's place (#section) when switching language.
+    document.querySelectorAll("a.lang-switch").forEach((a) =>
+      a.addEventListener("click", () => { a.href = a.getAttribute("href").split("#")[0] + location.hash; })
+    );
+  </script>
+  <script src="../quiz.js"></script>
+</body>
+</html>

@@ -4,6 +4,8 @@
   const root = document.getElementById("quiz-root");
   if (!dataEl || !root) return;
   const quiz = JSON.parse(dataEl.textContent);
+  const t = root.dataset; // labels in the page language
+
   const ol = document.createElement("ol");
 
   quiz.items.forEach((item, i) => {
@@ -12,7 +14,7 @@
     q.className = "q";
     q.textContent = item.prompt;
     li.append(q);
-    const choices = item.type === "true_false" ? ["True", "False"] : item.choices;
+    const choices = item.type === "true_false" ? [t.true || "True", t.false || "False"] : item.choices;
     choices.forEach((text, c) => {
       const label = document.createElement("label");
       const input = document.createElement("input");
@@ -33,11 +35,11 @@
   const check = document.createElement("button");
   check.className = "btn primary";
   check.type = "button";
-  check.textContent = "Check my answers";
+  check.textContent = t.check || "Check my answers";
   const reset = document.createElement("button");
   reset.className = "btn";
   reset.type = "button";
-  reset.textContent = "Reset";
+  reset.textContent = t.reset || "Reset";
   const score = document.createElement("span");
   score.className = "score";
   const bar = document.createElement("div");
@@ -61,7 +63,7 @@
       li.querySelector(".why").hidden = false;
     });
     const pass = right / quiz.items.length >= (quiz.passing_score ?? 0.67);
-    score.textContent = `${right} / ${quiz.items.length} ${pass ? "— passed" : "— try again"}`;
+    score.textContent = `${right} / ${quiz.items.length} — ${pass ? t.pass || "passed" : t.fail || "try again"}`;
   });
 
   reset.addEventListener("click", () => {

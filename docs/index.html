@@ -5,6 +5,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>Lab 02 — Affinity metrics · Clustering for EDA</title>
   <meta name="description" content="Lab 02 of the Clustering for EDA course: edge-weight, shared-neighbor and pin-count affinity, with narrated video, slides, an interactive browser lab and a quiz.">
+  <link rel="alternate" hreflang="fr" href="fr/index.html">
   <link rel="stylesheet" href="page.css">
 </head>
 <body>
@@ -18,6 +19,7 @@
         <a href="#implement">Implement</a>
         <a href="#quiz">Quiz</a>
         <a href="#transcript">Transcript</a>
+        <a class="lang-switch" href="fr/index.html" hreflang="fr" lang="fr" title="Lire cette page en français">Français</a>
       </nav>
     </div>
   </header>
@@ -73,9 +75,9 @@
           <p>Do the scoring yourself, right in the browser:</p>
           <ul>
             <li>Pick any pair of nodes, even one without an edge, compute its score by hand, and check it.</li>
-            <li>Build your own ranking in order. The tie-break counts.</li>
-            <li>Change edge weights and watch which pair merges first.</li>
-            <li>Three graphs (starter, priority, tiny netlist) and four scores.</li>
+<li>Build your own ranking in order. The tie-break counts.</li>
+<li>Change edge weights and watch which pair merges first.</li>
+<li>Three graphs (starter, priority, tiny netlist) and four scores.</li>
           </ul>
           <p>Ten challenges, from Intro to Stretch, check your own answers. The study aids are there if you're stuck, but what they reveal stops counting.</p>
           <div class="btns"><a class="btn primary" href="tools/affinity-metrics/index.html">Open the lab</a></div>
@@ -385,7 +387,9 @@ python3 examples/affinity_check.py --impl my_affinity.py
     <section id="quiz">
       <h2>Quiz</h2>
       <p>7 quick questions on this lab. Pick an answer for each, then check.</p>
-      <div class="card quiz" id="quiz-root"></div>
+      <div class="card quiz" id="quiz-root"
+           data-check="Check my answers" data-reset="Reset" data-pass="passed"
+           data-fail="try again" data-true="True" data-false="False"></div>
       <script type="application/json" id="quiz-data">{"module": "module01-01-affinity-metrics", "title": "Affinity metrics check", "passing_score": 0.67, "items": [{"id": "q1", "type": "multiple_choice", "prompt": "Under pure edge-weight affinity on the starter graph, the top score is…", "choices": ["A–C at 1", "A–B (and D–E) at 5", "B–C at 4", "C–D at 2"], "answer": 1, "explain": "Heaviest edges are A–B and D–E at weight 5."}, {"id": "q2", "type": "true_false", "prompt": "Shared-neighbor affinity can raise a pair’s score above its direct edge weight.", "answer": true, "explain": "Overlap through common neighbors is added to the direct weight."}, {"id": "q3", "type": "multiple_choice", "prompt": "On the starter graph, shared-neighbor+edge score for A–B is…", "choices": ["5", "6", "4", "1"], "answer": 1, "explain": "5 + min(A–C,B–C)=1 → 6."}, {"id": "q4", "type": "multiple_choice", "prompt": "Why does A–C rise under shared-neighbor scoring?", "choices": ["Because A–C is the heaviest direct edge", "Because A and C share neighbor B with a strong path", "Because D–E disappears", "Because cutsize ignores affinity"], "answer": 1, "explain": "min(A–B,C–B)=4 boosts the weak A–C edge."}, {"id": "q5", "type": "multiple_choice", "prompt": "On the priority graph (triangle P–Q–R with weight 4 edges, lone pair X–Y with weight 5), which pair merges first under shared-neighbor + edge scoring?", "choices": ["X–Y at 5", "P–Q at 8", "P–Q at 4", "X–Y at 10"], "answer": 1, "explain": "P–Q = 4 + via R min(4,4) = 8. X–Y has no common neighbor, so it stays at 5. Edge weight alone would merge X–Y first."}, {"id": "q6", "type": "multiple_choice", "prompt": "Under pin-count affinity w(e)/(|e|−1), what does one 5-pin net of weight 1 add to each pair of its pins?", "choices": ["1", "0.5", "0.25", "0.2"], "answer": 2, "explain": "1 / (5 − 1) = 0.25. Wide nets such as reset or enable spread their weight thin, so they don't glue every cell together."}, {"id": "q7", "type": "true_false", "prompt": "Under shared-neighbor scoring, B–D gets a score of 2 even though there is no B–D edge.", "answer": true, "explain": "B and D share neighbor C: min(w(B,C), w(D,C)) = min(4, 2) = 2. Only pairs with a total score of 0 are left out."}]}</script>
     </section>
 
@@ -411,10 +415,14 @@ python3 examples/affinity_check.py --impl my_affinity.py
   </main>
 
   <footer>
-    <div class="wrap">
-      Lab 02 of the Clustering for EDA course, from the <a href="https://github.com/yongfu-li/eda-learning">EDA Algorithms Platform</a> (CC BY 4.0). Review build, not yet merged into the course repository.
-    </div>
+    <div class="wrap">Lab 02 of the Clustering for EDA course, from the <a href="https://github.com/yongfu-li/eda-learning">EDA Algorithms Platform</a> (CC BY 4.0). Review build, not yet merged into the course repository.</div>
   </footer>
+  <script>
+    // Keep the reader's place (#section) when switching language.
+    document.querySelectorAll("a.lang-switch").forEach((a) =>
+      a.addEventListener("click", () => { a.href = a.getAttribute("href").split("#")[0] + location.hash; })
+    );
+  </script>
   <script src="quiz.js"></script>
 </body>
 </html>

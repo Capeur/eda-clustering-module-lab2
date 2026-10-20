@@ -1,0 +1,194 @@
+title: Métriques d'affinité
+footer: learn_clustering — 01 métriques d'affinité
+slides:
+- type: title
+  title: Métriques d'affinité
+  subtitle: Avant de fusionner des cellules ou de réduire une netlist, il faut savoir
+    lesquelles vont ensemble
+  notes: Avant de fusionner des cellules ou de réduire une netlist, il faut savoir
+    lesquelles vont ensemble. Ce score, c'est l'affinité. Vous allez comparer le poids
+    d'arête et le score par voisins communs. Les deux sont testés sur le même petit
+    graphe, pour voir qui fusionne en premier. Ensuite, vous verrez un graphe où ces
+    deux scores ne sont pas d'accord. Enfin, un troisième score traite les vraies
+    netlists, où un seul net touche de nombreuses cellules.
+- type: image
+  title: Un petit graphe pondéré
+  image: assets/steps/01-raw-graph.png
+  caption: Un petit graphe pondéré
+  notes: Cinq cellules, de A à E, reliées par des arêtes pondérées. Les arêtes lourdes
+    A–B et D–E pèsent toutes les deux cinq ; le pont qui passe par C est plus faible.
+    C'est l'affinité qui va décider quelles paires veulent former un cluster en premier.
+- type: image
+  title: L'affinité par poids d'arête classe les paires
+  image: assets/steps/02-edge-rank.png
+  caption: L'affinité par poids d'arête classe les paires
+  notes: L'affinité par poids d'arête se contente de trier les arêtes existantes.
+    A–B et D–E sont à égalité à cinq ; le départage place A–B en premier. Ce classement
+    est la priorité de fusion la plus simple.
+- type: image
+  title: Les voisins communs renforcent A–B
+  image: assets/steps/03-shared-idea.png
+  caption: Les voisins communs renforcent A–B
+  notes: 'A et B partagent déjà une arête de poids cinq. Ils ont aussi un voisin commun
+    : C. L''affinité par voisins communs ajoute le plus petit des deux rayons, c''est-à-dire
+    un, donc A–B monte à six.'
+- type: image
+  title: Le classement par voisins communs rebat les cartes
+  image: assets/steps/04-shared-rank.png
+  caption: Le classement par voisins communs rebat les cartes
+  notes: Avec le score par voisins communs, A–B et D–E mènent à six. L'arête faible
+    A–C bondit à cinq grâce à B. Des paires sans arête, comme B–D, peuvent apparaître
+    uniquement grâce à leurs voisins communs.
+- type: image
+  title: Pourquoi l'affinité compte en EDA
+  image: assets/steps/05-takeaway.png
+  caption: Pourquoi l'affinité compte en EDA
+  notes: 'L''affinité, c''est la préférence locale de l''objectif : quelles cellules
+    vont ensemble, avant les contraintes globales. Une mauvaise affinité donne de
+    mauvaises fusions, et un raffinement plus difficile ensuite.'
+- type: bullets
+  title: Le score par voisins communs en pseudo-code
+  bullets:
+  - Voici le score par voisins communs sous forme de code
+  - D'abord, chaque arête existante ajoute son poids à sa paire
+  - Ensuite, on prend chaque paire de nœuds et chacun de leurs voisins communs
+  - Pour chaque voisin commun, on ajoute le plus petit des deux poids vers la paire
+  - Une paire dont le score dépasse zéro est gardée
+  - Enfin, on trie par score décroissant, et on départage les égalités par ordre alphabétique
+  notes: Voici le score par voisins communs sous forme de code. D'abord, chaque arête
+    existante ajoute son poids à sa paire. Ensuite, on prend chaque paire de nœuds
+    et chacun de leurs voisins communs. Pour chaque voisin commun, on ajoute le plus
+    petit des deux poids vers la paire. Une paire dont le score dépasse zéro est gardée.
+    Enfin, on trie par score décroissant, et on départage les égalités par ordre alphabétique.
+    Ainsi, la liste est toujours la même.
+- type: code
+  title: Le score par voisins communs en pseudo-code — à essayer
+  code: "affinity_shared_neighbors(nodes, edges):\n  score[u,v] = w(u,v) pour chaque\
+    \ arête\n  pour chaque paire (u, v) de nœuds :\n    s = 0\n    pour x dans voisins(u),\
+    \ x != v :\n      si x dans voisins(v) :\n        s += min(w(u,x), w(v,x))\n \
+    \   si s > 0 ou (u,v) a une arête :\n      score[u,v] += s\n  trier par score\
+    \ (décroissant), puis u, puis v"
+  notes: ''
+- type: bullets
+  title: Dix paires, pas six
+  bullets:
+  - Avec le score par voisins communs, le graphe de départ donne dix paires, et non
+    six
+  - Quatre d'entre elles n'ont aucune arête
+  - 'B et D sont tous les deux reliés à C, donc B–D obtient le plus petit rayon :
+    deux'
+  - A–D, A–E et B–E gagnent chacune un, en passant par C
+  - Ces paires ne sont pas des erreurs
+  - Elles disent que deux cellules sont proches, même sans fil direct
+  notes: 'Avec le score par voisins communs, le graphe de départ donne dix paires,
+    et non six. Quatre d''entre elles n''ont aucune arête. B et D sont tous les deux
+    reliés à C, donc B–D obtient le plus petit rayon : deux. A–D, A–E et B–E gagnent
+    chacune un, en passant par C. Ces paires ne sont pas des erreurs. Elles disent
+    que deux cellules sont proches, même sans fil direct. Une paire n''est exclue
+    que si son score vaut zéro.'
+- type: two_column
+  title: Même graphe, première fusion différente
+  left:
+  - Prenons un triangle serré P, Q, R, dont chaque arête pèse quatre
+  - Ajoutons une paire isolée X–Y, de poids cinq
+  - Le poids d'arête choisit d'abord X–Y, car cinq bat quatre
+  - 'Le score par voisins communs donne à P–Q quatre, plus quatre via R : huit'
+  - X–Y n'a aucun voisin commun, donc reste à cinq
+  - Même graphe, même moteur de fusion, mais une première fusion différente
+  right: assets/priority-graph.png
+  notes: 'Prenons un triangle serré P, Q, R, dont chaque arête pèse quatre. Ajoutons
+    une paire isolée X–Y, de poids cinq. Le poids d''arête choisit d''abord X–Y, car
+    cinq bat quatre. Le score par voisins communs donne à P–Q quatre, plus quatre
+    via R : huit. X–Y n''a aucun voisin commun, donc reste à cinq. Même graphe, même
+    moteur de fusion, mais une première fusion différente.'
+- type: bullets
+  title: Des nets à nombreuses broches
+  bullets:
+  - Les vraies netlists ne sont pas faites de simples arêtes
+  - Un seul net peut relier de nombreuses cellules, comme une ligne de reset ou d'enable
+  - Compter chaque net partagé à plein poids rapproche A et B à tort
+  - Elles semblent proches simplement parce qu'elles voient toutes les deux le reset
+  - Le score par nombre de broches corrige cela
+  - Chaque net divise son poids par son nombre de broches moins un
+  notes: Les vraies netlists ne sont pas faites de simples arêtes. Un seul net peut
+    relier de nombreuses cellules, comme une ligne de reset ou d'enable. Compter chaque
+    net partagé à plein poids rapproche A et B à tort. Elles semblent proches simplement
+    parce qu'elles voient toutes les deux le reset. Le score par nombre de broches
+    corrige cela. Chaque net divise son poids par son nombre de broches moins un.
+    Un net à deux broches compte donc entièrement. Un net à cinq broches ne donne
+    qu'un quart à chaque paire.
+- type: code
+  title: Des nets à nombreuses broches — à essayer
+  code: "petite netlist : en {A,B,C,D,E}, rst {A,B,C,D,E}, n1 {E,F}\n\n          \
+    \ nombre brut de nets    nombre de broches w/(|e|-1)\nA-B        1 + 1 = 2   \
+    \           1/4 + 1/4 = 0.5\nE-F        1                      1/1 = 1.0\n1re\
+    \ fusion A-B                    E-F"
+  notes: ''
+- type: image
+  title: Le parcours lab dans le navigateur
+  image: assets/lab-starter.png
+  caption: Le lab dans le navigateur
+  notes: Dans le lab du navigateur, c'est vous qui calculez les scores. Cliquez sur
+    deux nœuds pour choisir une paire, même une paire sans arête, calculez son score
+    à la main, puis saisissez-le. Vous pouvez aussi construire votre propre classement,
+    une paire à la fois, et modifier les poids des arêtes pour voir quelle paire fusionne
+    en premier. Vous pouvez passer d'un graphe à l'autre et d'un score à l'autre.
+    Les dix défis vérifient ce que vous avez saisi, votre classement et vos modifications.
+    Le détail du calcul et le classement complet sont là pour réviser, mais tout ce
+    qu'ils révèlent ne compte plus.
+- type: image
+  title: Le parcours implémentation
+  image: assets/real-shell.png
+  caption: Session dans un vrai terminal
+  notes: 'Dans le parcours implémentation, affichez les deux classements pour le graphe
+    de départ, puis pour le graphe de priorité, et comparez la première ligne de chaque
+    tableau. Ensuite, écrivez vos propres fonctions de score, y compris le nombre
+    de broches, et lancez le vérificateur sur votre fichier. Il contrôle les trois
+    scores, et il fournit les arêtes dans le désordre : un départage oublié apparaît
+    donc comme un échec.'
+- type: code
+  title: Le parcours implémentation — à essayer
+  code: '# indiquer à Python où sont les fonctions partagées
+
+    export PYTHONPATH=../common
+
+
+    # les deux classements : graphe de départ, puis graphe de priorité
+
+    python3 ../common/solvers.py examples/tiny_graph.json --mode affinity
+
+    python3 ../common/solvers.py examples/priority_graph.json --mode affinity
+
+
+    # vérifier tous les résultats de référence sur vos propres fonctions
+
+    python3 examples/affinity_check.py --impl my_affinity.py'
+  notes: ''
+- type: bullets
+  title: Les pièges à éviter
+  bullets:
+  - Attention à quatre choses
+  - Compter deux fois une arête non orientée, une fois depuis chaque extrémité
+  - Ajouter le plus grand rayon au lieu du plus petit, ce qui rend tout proche de
+    tout
+  - 'Oublier le départage : A–B et D–E changent alors de place d''une exécution à
+    l''autre'
+  - Et compter les nets bruts sur une netlist
+  - Des nets très larges comme le reset collent alors des cellules sans rapport
+  notes: 'Attention à quatre choses. Compter deux fois une arête non orientée, une
+    fois depuis chaque extrémité. Ajouter le plus grand rayon au lieu du plus petit,
+    ce qui rend tout proche de tout. Oublier le départage : A–B et D–E changent alors
+    de place d''une exécution à l''autre. Et compter les nets bruts sur une netlist.
+    Des nets très larges comme le reset collent alors des cellules sans rapport.'
+- type: bullets
+  title: À vous de jouer
+  bullets:
+  - Faites passer les trois vérifications de référence
+  - Puis expliquez pourquoi A–C monte avec le score par voisins communs
+  - Expliquez aussi pourquoi le graphe de priorité change sa première fusion
+  - Faites le petit quiz
+  - Passez ensuite à la fusion gloutonne par paires, où ces scores deviennent la règle
+  notes: Faites passer les trois vérifications de référence. Puis expliquez pourquoi
+    A–C monte avec le score par voisins communs. Expliquez aussi pourquoi le graphe
+    de priorité change sa première fusion. Faites le petit quiz. Passez ensuite à
+    la fusion gloutonne par paires, où ces scores deviennent la règle.

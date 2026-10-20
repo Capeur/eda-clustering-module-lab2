@@ -1,0 +1,66 @@
+{
+  "algo": "Métriques d'affinité",
+  "explanation": "Explication",
+  "step_word": "Étape",
+  "steps": [
+    {
+      "file": "01-raw-graph.png",
+      "title": "Un petit graphe pondéré",
+      "caption": "Cinq cellules A–E avec des poids d'arête. Les arêtes lourdes A–B et D–E pèsent toutes les deux 5 ; le pont qui passe par C est plus faible. L'affinité va décider quelles paires veulent former un cluster en premier.",
+      "bullets": [
+        "Nœuds = cellules ou clusters à regrouper",
+        "Poids d'arête = à quel point une paire doit rester unie",
+        "Instance de référence utilisée dans tous les labs de clustering"
+      ],
+      "metrics": ["Graphe : 5 nœuds, 6 arêtes", "Arêtes les plus lourdes : A–B=5, D–E=5"]
+    },
+    {
+      "file": "02-edge-rank.png",
+      "title": "L'affinité par poids d'arête classe les paires",
+      "caption": "L'affinité par poids d'arête trie simplement les arêtes existantes. A–B et D–E sont à égalité à 5 ; le départage place A–B en premier. Ce classement est la priorité de fusion la plus simple.",
+      "bullets": [
+        "score(u,v) = w(u,v)",
+        "Tri par score décroissant",
+        "La première paire devient la première candidate à la fusion"
+      ],
+      "metrics": null
+    },
+    {
+      "file": "03-shared-idea.png",
+      "title": "Les voisins communs renforcent A–B",
+      "caption": "A et B partagent déjà une arête de poids 5. Ils ont aussi un voisin commun, C. L'affinité par voisins communs ajoute min(w(A,C), w(B,C)) = min(1,4) = 1, donc A–B monte à 6.",
+      "bullets": [
+        "L'arête directe compte toujours",
+        "Plus le soutien des voisins communs",
+        "Favorise le regroupement des triangles denses"
+      ],
+      "metrics": ["w(A,B)=5", "via C : min(1,4)=1", "score(A,B)=6"]
+    },
+    {
+      "file": "04-shared-rank.png",
+      "title": "Le classement par voisins communs rebat les cartes",
+      "caption": "Avec le score par voisins communs, A–B et D–E mènent à 6. L'arête faible A–C bondit à 5 grâce à B. Des paires sans arête, comme B–D, peuvent apparaître grâce au seul soutien de leurs voisins.",
+      "bullets": [
+        "A–C : 1 avant → 5 maintenant",
+        "Paires sans arête (ex. B–D @ 2) : attraction transitive",
+        "La même idée alimente les priorités de la fusion gloutonne"
+      ],
+      "metrics": null
+    },
+    {
+      "file": "05-takeaway.png",
+      "title": "Pourquoi l'affinité compte en EDA",
+      "caption": "L'affinité est la préférence locale de l'objectif : quelles cellules vont ensemble, avant les contraintes globales. Mauvaise affinité → mauvaises fusions → raffinement plus difficile ensuite.",
+      "bullets": [
+        "Poids d'arête = connectivité, nets partagés",
+        "Voisins communs ≈ groupes locaux plus denses",
+        "Les labs suivants utilisent ce classement pour fusionner"
+      ],
+      "metrics": [
+        "Meilleure paire (arête) : A–B @ 5",
+        "Meilleure paire (voisins communs) : A–B @ 6",
+        "Le graphe d'exemple reste fixe pour les résultats de référence"
+      ]
+    }
+  ]
+}

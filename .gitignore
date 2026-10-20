@@ -1,2 +1,7 @@
 __pycache__/
 *.pyc
+# French media built by make_fr_media.py (the copies in docs/fr/ are committed)
+i18n/fr/module01-01-affinity-metrics/audio/
+i18n/fr/module01-01-affinity-metrics/frames/
+i18n/fr/module01-01-affinity-metrics/video.mp4
+i18n/fr/module01-01-affinity-metrics/build.log
