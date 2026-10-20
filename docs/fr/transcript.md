@@ -6,43 +6,71 @@
 
 ## Slide 1 — Métriques d'affinité
 
-Avant de fusionner des cellules ou de réduire une netlist, il faut savoir lesquelles vont ensemble. Ce score, c'est l'affinité. Vous allez comparer le poids d'arête et le score par voisins communs. Les deux sont testés sur le même petit graphe, pour voir qui fusionne en premier. Ensuite, vous verrez un graphe où ces deux scores ne sont pas d'accord. Enfin, un troisième score traite les vraies netlists, où un seul net touche de nombreuses cellules.
+Quelles parties d'une puce vont ensemble ? C'est la question à laquelle répond ce lab. Une puce est faite de millions de minuscules éléments appelés cellules. Avant de les placer, un ordinateur doit savoir quelles cellules aiment rester proches. Cette attirance est un nombre, qu'on appelle l'affinité. Dans ce lab, vous allez découvrir trois façons de la calculer, et voir pourquoi ce choix compte.
 
-## Slide 2 — Un petit graphe pondéré
+## Slide 2 — D'une puce à un graphe
+
+![Des cellules et des fils sur une puce, puis la même chose dessinée en graphe](assets/chip-to-graph.png)
+
+Une puce contient des cellules, les petites briques du circuit. Les cellules communiquent entre elles par des fils. On dessine chaque cellule comme un point, appelé nœud. Un trait entre deux points est une arête : les deux cellules sont reliées. Le nombre sur une arête est son poids : combien de fils relient la paire. Ainsi, A–B a un poids de cinq : cinq fils relient A et B. Ce dessin s'appelle un graphe, et c'est la carte sur laquelle travaillent tous les algorithmes de ce cours.
+
+## Slide 3 — Pourquoi regrouper les cellules ?
+
+![Deux groupes de cellules ; seules les arêtes rouges passent de l'un à l'autre](assets/clustering-groups.png)
+
+Les cellules qui échangent beaucoup de signaux doivent être proches. Des fils courts rendent la puce plus rapide et économisent de l'énergie. Regrouper les cellules proches s'appelle le clustering, et chaque groupe est un cluster. Pensez à un plan de classe : les amis qui discutent beaucoup s'assoient ensemble. Ici, A, B et C forment un groupe, et D et E en forment un autre. Seules les arêtes rouges passent d'un groupe à l'autre, et on en veut le moins possible.
+
+## Slide 4 — Qu'est-ce que l'affinité ?
+
+L'affinité est un score donné à chaque paire de cellules. Un score élevé veut dire que ces deux-là doivent être dans le même groupe. Un score faible veut dire qu'elles peuvent être séparées. Les algorithmes de clustering fusionnent d'abord la paire qui a le meilleur score. La recette du score décide donc de tout ce qui suit. Ce lab compare trois recettes sur le même petit exemple.
+
+<!-- algorithm-walkthrough -->
+
+## Slide 5 — Un petit graphe pondéré
 
 ![Un petit graphe pondéré](assets/steps/01-raw-graph.png)
 
-Cinq cellules, de A à E, reliées par des arêtes pondérées. Les arêtes lourdes A–B et D–E pèsent toutes les deux cinq ; le pont qui passe par C est plus faible. C'est l'affinité qui va décider quelles paires veulent former un cluster en premier.
+Voici notre exemple pour tout le lab : cinq cellules, de A à E. Les arêtes lourdes sont A–B et D–E, avec un poids de cinq chacune. C est au milieu, avec des liens plus fins vers les autres. Gardez cette image en tête : nous allons donner un score à chaque paire de cellules de ce graphe.
 
-## Slide 3 — L'affinité par poids d'arête classe les paires
+## Slide 6 — L'affinité par poids d'arête classe les paires
 
 ![L'affinité par poids d'arête classe les paires](assets/steps/02-edge-rank.png)
 
-L'affinité par poids d'arête se contente de trier les arêtes existantes. A–B et D–E sont à égalité à cinq ; le départage place A–B en premier. Ce classement est la priorité de fusion la plus simple.
+La première recette est la plus simple. Le score d'une paire est simplement le poids de l'arête qui les relie. Ensuite, on trie les paires du plus grand au plus petit score, comme un classement sportif. A–B et D–E sont à égalité, à cinq. Quand deux scores sont égaux, on les départage par ordre alphabétique : A–B passe donc en premier. Ce départage fixe est important : il garantit que l'ordinateur donne toujours la même réponse.
 
-## Slide 4 — Les voisins communs renforcent A–B
+## Slide 7 — Les voisins communs renforcent A–B
 
 ![Les voisins communs renforcent A–B](assets/steps/03-shared-idea.png)
 
-A et B partagent déjà une arête de poids cinq. Ils ont aussi un voisin commun : C. L'affinité par voisins communs ajoute le plus petit des deux rayons, c'est-à-dire un, donc A–B monte à six.
+La deuxième recette ajoute une idée de la vie de tous les jours : les amis de nos amis. Si deux personnes ont un ami proche en commun, elles sont sans doute proches aussi. A et B sont reliés directement, avec un poids de cinq. Ils ont aussi un voisin en commun : C. On ajoute le plus faible des deux liens qui passent par C, c'est-à-dire un, donc A–B monte à six. Pourquoi le plus faible ? Parce qu'une chaîne n'est jamais plus solide que son maillon le plus faible.
 
-## Slide 5 — Le classement par voisins communs rebat les cartes
+## Slide 8 — Le classement par voisins communs rebat les cartes
 
 ![Le classement par voisins communs rebat les cartes](assets/steps/04-shared-rank.png)
 
-Avec le score par voisins communs, A–B et D–E mènent à six. L'arête faible A–C bondit à cinq grâce à B. Des paires sans arête, comme B–D, peuvent apparaître uniquement grâce à leurs voisins communs.
+Avec la deuxième recette, A–B et D–E restent en tête, maintenant à six. Mais regardez A–C : seule, c'était une arête faible de poids un, et maintenant elle bondit à cinq, grâce à B. Même des paires sans aucune arête, comme B–D, obtiennent un score, parce qu'elles ont un voisin en commun.
 
-## Slide 6 — Pourquoi l'affinité compte en EDA
+## Slide 9 — Pourquoi l'affinité compte en EDA
 
 ![Pourquoi l'affinité compte en EDA](assets/steps/05-takeaway.png)
 
-L'affinité, c'est la préférence locale de l'objectif : quelles cellules vont ensemble, avant les contraintes globales. Une mauvaise affinité donne de mauvaises fusions, et un raffinement plus difficile ensuite.
+EDA signifie conception électronique automatisée : ce sont les logiciels qui conçoivent les puces. En EDA, l'affinité est la préférence locale : quelles cellules vont ensemble, avant toute règle sur la puce entière. Une mauvaise affinité donne de mauvaises fusions, et les corriger ensuite est bien plus difficile.
 
 <!-- /algorithm-walkthrough -->
 
-## Slide 7 — Le score par voisins communs en pseudo-code
+## Slide 10 — Exemple résolu : le score de A–C
 
-Voici le score par voisins communs sous forme de code. D'abord, chaque arête existante ajoute son poids à sa paire. Ensuite, on prend chaque paire de nœuds et chacun de leurs voisins communs. Pour chaque voisin commun, on ajoute le plus petit des deux poids vers la paire. Une paire dont le score dépasse zéro est gardée. Enfin, on trie par score décroissant, et on départage les égalités par ordre alphabétique. Ainsi, la liste est toujours la même.
+![Le score de A–C calculé étape par étape](assets/worked-ac.png)
+
+Calculons un score ensemble, étape par étape. Étape un : l'arête directe A–C a un poids de un. Étape deux : A et C ont un voisin en commun, B. Les liens qui passent par B pèsent cinq et quatre, on garde le plus petit : quatre. Étape trois : on additionne, un plus quatre font cinq. Seule, A–C était faible, mais elle devient forte grâce à son ami commun.
+
+## Slide 11 — Dix paires, pas six
+
+Avec la deuxième recette, notre petit graphe donne dix paires au lieu de six. Quatre d'entre elles n'ont aucun fil entre elles. Par exemple, B et D ne sont pas reliés, mais tous les deux sont reliés à C. B–D obtient donc le plus faible de ces deux liens : deux. C'est comme deux personnes qui ne se sont jamais vues mais ont le même meilleur ami. Seules les paires dont le score vaudrait zéro sont exclues.
+
+## Slide 12 — La deuxième recette en pseudo-code
+
+Voici la deuxième recette écrite sous forme d'étapes qu'un ordinateur peut suivre. D'abord, chaque arête ajoute son poids à sa propre paire. Ensuite, pour chaque paire de nœuds, on regarde chaque voisin qu'ils ont en commun. Pour chaque voisin commun, on ajoute le plus petit de ses deux liens. On garde chaque paire dont le score finit au-dessus de zéro. Enfin, on trie par score décroissant et on départage les égalités par ordre alphabétique.
 
 ```text
 affinity_shared_neighbors(nodes, edges):
@@ -57,19 +85,17 @@ affinity_shared_neighbors(nodes, edges):
   trier par score (décroissant), puis u, puis v
 ```
 
-## Slide 8 — Dix paires, pas six
-
-Avec le score par voisins communs, le graphe de départ donne dix paires, et non six. Quatre d'entre elles n'ont aucune arête. B et D sont tous les deux reliés à C, donc B–D obtient le plus petit rayon : deux. A–D, A–E et B–E gagnent chacune un, en passant par C. Ces paires ne sont pas des erreurs. Elles disent que deux cellules sont proches, même sans fil direct. Une paire n'est exclue que si son score vaut zéro.
-
-## Slide 9 — Même graphe, première fusion différente
+## Slide 13 — Même graphe, première fusion différente
 
 ![Poids d'arête et voisins communs sur le graphe de priorité](assets/priority-graph.png)
 
-Prenons un triangle serré P, Q, R, dont chaque arête pèse quatre. Ajoutons une paire isolée X–Y, de poids cinq. Le poids d'arête choisit d'abord X–Y, car cinq bat quatre. Le score par voisins communs donne à P–Q quatre, plus quatre via R : huit. X–Y n'a aucun voisin commun, donc reste à cinq. Même graphe, même moteur de fusion, mais une première fusion différente.
+Voici un deuxième exemple qui montre pourquoi la recette compte. Prenons un triangle serré P, Q, R, dont chaque arête pèse quatre. À côté, une paire isolée X–Y a un poids de cinq. La première recette choisit X–Y, car cinq bat quatre. La deuxième donne à P–Q quatre, plus quatre via R : huit. P–Q passe donc en premier. Même graphe, même règle de fusion, mais une première fusion différente.
 
-## Slide 10 — Des nets à nombreuses broches
+## Slide 14 — Des nets à nombreuses broches
 
-Les vraies netlists ne sont pas faites de simples arêtes. Un seul net peut relier de nombreuses cellules, comme une ligne de reset ou d'enable. Compter chaque net partagé à plein poids rapproche A et B à tort. Elles semblent proches simplement parce qu'elles voient toutes les deux le reset. Le score par nombre de broches corrige cela. Chaque net divise son poids par son nombre de broches moins un. Un net à deux broches compte donc entièrement. Un net à cinq broches ne donne qu'un quart à chaque paire.
+![Deux nets larges et un net privé](assets/wide-nets.png)
+
+Sur une vraie puce, un même fil peut relier plusieurs cellules à la fois. Un tel fil partagé s'appelle un net, et chaque cellule qu'il touche est une broche. Pensez à une discussion de groupe à cinquante : elle en dit peu sur qui est ami avec qui. Un message privé entre deux personnes en dit beaucoup plus. La troisième recette fonctionne pareil : chaque net partage son poids entre ses broches. La règle : le poids divisé par le nombre de broches moins un. Ici, les nets enable et reset touchent cinq cellules chacun, ils ne donnent donc qu'un quart à chaque paire. Le net privé entre E et F donne tout son poids, c'est-à-dire un.
 
 ```text
 petite netlist : en {A,B,C,D,E}, rst {A,B,C,D,E}, n1 {E,F}
@@ -80,17 +106,17 @@ E-F        1                      1/1 = 1.0
 1re fusion A-B                    E-F
 ```
 
-## Slide 11 — Le parcours lab dans le navigateur
+## Slide 15 — Le parcours lab dans le navigateur
 
 ![Le lab dans le navigateur](assets/lab-starter.png)
 
-Dans le lab du navigateur, c'est vous qui calculez les scores. Cliquez sur deux nœuds pour choisir une paire, même une paire sans arête, calculez son score à la main, puis saisissez-le. Vous pouvez aussi construire votre propre classement, une paire à la fois, et modifier les poids des arêtes pour voir quelle paire fusionne en premier. Vous pouvez passer d'un graphe à l'autre et d'un score à l'autre. Les dix défis vérifient ce que vous avez saisi, votre classement et vos modifications. Le détail du calcul et le classement complet sont là pour réviser, mais tout ce qu'ils révèlent ne compte plus.
+À vous maintenant de calculer des scores, dans le lab du navigateur. Cliquez sur deux nœuds pour choisir une paire, même une paire sans arête, calculez son score à la main, puis saisissez-le. Le lab vous dit tout de suite si c'est juste. Vous pouvez aussi construire votre propre classement, une paire à la fois, et modifier les poids des arêtes pour voir quelle paire fusionne en premier. Les dix défis vont du plus facile au plus difficile. Si vous bloquez, le bouton de détail montre le calcul, mais cette réponse ne compte plus pour le défi.
 
-## Slide 12 — Le parcours implémentation
+## Slide 16 — Le parcours implémentation
 
 ![Session dans un vrai terminal](assets/real-shell.png)
 
-Dans le parcours implémentation, affichez les deux classements pour le graphe de départ, puis pour le graphe de priorité, et comparez la première ligne de chaque tableau. Ensuite, écrivez vos propres fonctions de score, y compris le nombre de broches, et lancez le vérificateur sur votre fichier. Il contrôle les trois scores, et il fournit les arêtes dans le désordre : un départage oublié apparaît donc comme un échec.
+Si vous aimez programmer, le parcours implémentation est fait pour vous. D'abord, affichez les deux classements avec le programme de référence, pour le graphe de départ puis pour le graphe de priorité. Ensuite, écrivez vos trois fonctions de score en Python. Enfin, lancez le vérificateur sur votre fichier. Il compare vos réponses aux bonnes, et il fournit les arêtes dans le désordre : un départage oublié apparaît donc comme un échec.
 
 ```bash
 # indiquer à Python où sont les fonctions partagées
@@ -104,10 +130,14 @@ python3 ../common/solvers.py examples/priority_graph.json --mode affinity
 python3 examples/affinity_check.py --impl my_affinity.py
 ```
 
-## Slide 13 — Les pièges à éviter
+## Slide 17 — Les pièges à éviter
 
-Attention à quatre choses. Compter deux fois une arête non orientée, une fois depuis chaque extrémité. Ajouter le plus grand rayon au lieu du plus petit, ce qui rend tout proche de tout. Oublier le départage : A–B et D–E changent alors de place d'une exécution à l'autre. Et compter les nets bruts sur une netlist. Des nets très larges comme le reset collent alors des cellules sans rapport.
+Attention à quatre erreurs fréquentes. Compter deux fois une arête, une fois depuis chaque extrémité. Ajouter le lien le plus fort au lieu du plus faible : tout semble alors proche de tout. Oublier le départage : A–B et D–E changent de place d'une exécution à l'autre. Et compter les grands nets partagés à plein poids, ce qui colle des cellules sans rapport.
 
-## Slide 14 — À vous de jouer
+## Slide 18 — Récapitulatif : trois recettes
 
-Faites passer les trois vérifications de référence. Puis expliquez pourquoi A–C monte avec le score par voisins communs. Expliquez aussi pourquoi le graphe de priorité change sa première fusion. Faites le petit quiz. Passez ensuite à la fusion gloutonne par paires, où ces scores deviennent la règle.
+Recette un, le poids d'arête : on ne regarde que le fil direct. Recette deux, les voisins communs : on ajoute l'aide des amis communs. Recette trois, le nombre de broches : un grand net partagé compte moins qu'un net privé. Les égalités se départagent par ordre alphabétique, donc les résultats ne changent jamais. Des recettes différentes peuvent choisir une première fusion différente. Choisir la recette est une décision de conception, pas un détail.
+
+## Slide 19 — À vous de jouer
+
+Essayez les défis du lab, ou écrivez les trois recettes et passez le vérificateur. Puis expliquez deux choses avec vos propres mots. D'abord, pourquoi A–C monte-t-elle avec la deuxième recette ? Ensuite, pourquoi le graphe de priorité change-t-il sa première fusion ? Faites le petit quiz, puis passez à la fusion gloutonne par paires. Là, ces scores deviennent la règle de fusion.

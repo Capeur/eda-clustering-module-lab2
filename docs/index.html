@@ -6,6 +6,7 @@
   <title>Lab 02 — Affinity metrics · Clustering for EDA</title>
   <meta name="description" content="Lab 02 of the Clustering for EDA course: edge-weight, shared-neighbor and pin-count affinity, with narrated video, slides, an interactive browser lab and a quiz.">
   <link rel="alternate" hreflang="fr" href="fr/index.html">
+  <link rel="preload" href="fonts/source-sans-3-latin-400-normal.woff2" as="font" type="font/woff2" crossorigin>
   <link rel="stylesheet" href="page.css">
 </head>
 <body>
@@ -33,44 +34,49 @@
 
     <section id="video">
       <div class="card video-card">
-        <video controls preload="metadata" poster="slides/01.png"><source src="video.mp4" type="video/mp4"><track kind="subtitles" src="subs.vtt" srclang="en" label="English" default>Your browser does not support the video tag.</video>
-        <p class="meta"><strong>4:44</strong> · 17 slides · English narration and subtitles</p>
+        <video controls preload="metadata" poster="slides/poster.webp"><source src="video.mp4" type="video/mp4"><track kind="subtitles" src="subs.vtt" srclang="en" label="English" default>Your browser does not support the video tag.</video>
+        <p class="meta"><strong>8:00</strong> · 22 slides · English narration and subtitles</p>
         <div class="btns"><a class="btn" href="video.mp4" download>Download video (MP4)</a><a class="btn" href="subs.srt" download>Subtitles (SRT)</a></div>
       </div>
     </section>
 
     <section id="slides">
       <h2>Slides</h2>
-      <p>All 17 slides of the video. Click one to open it full size, or download the whole deck.</p>
+      <p>All 22 slides of the video. Click one to open it full size, or download the whole deck.</p>
       <div class="btns" style="margin-bottom:1rem">
         <a class="btn" href="slides.pdf">Slides (PDF)</a>
         <a class="btn" href="slides.pptx" download>Slides (PowerPoint)</a>
       </div>
       <div class="slides">
-        <figure><a href="slides/01.png"><img src="slides/01.png" loading="lazy" alt="Slide 1: Affinity metrics"></a><figcaption><b>01</b>Affinity metrics</figcaption></figure>
-<figure><a href="slides/02.png"><img src="slides/02.png" loading="lazy" alt="Slide 2: Start with a tiny weighted graph"></a><figcaption><b>02</b>Start with a tiny weighted graph</figcaption></figure>
-<figure><a href="slides/03.png"><img src="slides/03.png" loading="lazy" alt="Slide 3: Edge-weight affinity ranks pairs"></a><figcaption><b>03</b>Edge-weight affinity ranks pairs</figcaption></figure>
-<figure><a href="slides/04.png"><img src="slides/04.png" loading="lazy" alt="Slide 4: Shared neighbors boost A–B"></a><figcaption><b>04</b>Shared neighbors boost A–B</figcaption></figure>
-<figure><a href="slides/05.png"><img src="slides/05.png" loading="lazy" alt="Slide 5: Shared ranking reshuffles the list"></a><figcaption><b>05</b>Shared ranking reshuffles the list</figcaption></figure>
-<figure><a href="slides/06.png"><img src="slides/06.png" loading="lazy" alt="Slide 6: Why affinity matters in EDA"></a><figcaption><b>06</b>Why affinity matters in EDA</figcaption></figure>
-<figure><a href="slides/07.png"><img src="slides/07.png" loading="lazy" alt="Slide 7: Shared-neighbor scoring as pseudocode"></a><figcaption><b>07</b>Shared-neighbor scoring as pseudocode</figcaption></figure>
-<figure><a href="slides/08.png"><img src="slides/08.png" loading="lazy" alt="Slide 8: Shared-neighbor scoring as pseudocode — try these"></a><figcaption><b>08</b>Shared-neighbor scoring as pseudocode — try these</figcaption></figure>
-<figure><a href="slides/09.png"><img src="slides/09.png" loading="lazy" alt="Slide 9: Ten pairs, not six"></a><figcaption><b>09</b>Ten pairs, not six</figcaption></figure>
-<figure><a href="slides/10.png"><img src="slides/10.png" loading="lazy" alt="Slide 10: Same graph, different first merge"></a><figcaption><b>10</b>Same graph, different first merge</figcaption></figure>
-<figure><a href="slides/11.png"><img src="slides/11.png" loading="lazy" alt="Slide 11: Nets with many pins"></a><figcaption><b>11</b>Nets with many pins</figcaption></figure>
-<figure><a href="slides/12.png"><img src="slides/12.png" loading="lazy" alt="Slide 12: Nets with many pins — try these"></a><figcaption><b>12</b>Nets with many pins — try these</figcaption></figure>
-<figure><a href="slides/13.png"><img src="slides/13.png" loading="lazy" alt="Slide 13: Browser lab track"></a><figcaption><b>13</b>Browser lab track</figcaption></figure>
-<figure><a href="slides/14.png"><img src="slides/14.png" loading="lazy" alt="Slide 14: Implement track"></a><figcaption><b>14</b>Implement track</figcaption></figure>
-<figure><a href="slides/15.png"><img src="slides/15.png" loading="lazy" alt="Slide 15: Implement track — try these"></a><figcaption><b>15</b>Implement track — try these</figcaption></figure>
-<figure><a href="slides/16.png"><img src="slides/16.png" loading="lazy" alt="Slide 16: Pitfalls to watch"></a><figcaption><b>16</b>Pitfalls to watch</figcaption></figure>
-<figure><a href="slides/17.png"><img src="slides/17.png" loading="lazy" alt="Slide 17: Your turn"></a><figcaption><b>17</b>Your turn</figcaption></figure>
+        <figure><a href="slides/01.png"><img src="slides/thumb/01.webp" loading="lazy" width="480" height="270" alt="Slide 1: Affinity metrics"></a><figcaption><b>01</b>Affinity metrics</figcaption></figure>
+<figure><a href="slides/02.png"><img src="slides/thumb/02.webp" loading="lazy" width="480" height="270" alt="Slide 2: From a chip to a graph"></a><figcaption><b>02</b>From a chip to a graph</figcaption></figure>
+<figure><a href="slides/03.png"><img src="slides/thumb/03.webp" loading="lazy" width="480" height="270" alt="Slide 3: Why group cells?"></a><figcaption><b>03</b>Why group cells?</figcaption></figure>
+<figure><a href="slides/04.png"><img src="slides/thumb/04.webp" loading="lazy" width="480" height="270" alt="Slide 4: What is affinity?"></a><figcaption><b>04</b>What is affinity?</figcaption></figure>
+<figure><a href="slides/05.png"><img src="slides/thumb/05.webp" loading="lazy" width="480" height="270" alt="Slide 5: Start with a tiny weighted graph"></a><figcaption><b>05</b>Start with a tiny weighted graph</figcaption></figure>
+<figure><a href="slides/06.png"><img src="slides/thumb/06.webp" loading="lazy" width="480" height="270" alt="Slide 6: Edge-weight affinity ranks pairs"></a><figcaption><b>06</b>Edge-weight affinity ranks pairs</figcaption></figure>
+<figure><a href="slides/07.png"><img src="slides/thumb/07.webp" loading="lazy" width="480" height="270" alt="Slide 7: Shared neighbors boost A–B"></a><figcaption><b>07</b>Shared neighbors boost A–B</figcaption></figure>
+<figure><a href="slides/08.png"><img src="slides/thumb/08.webp" loading="lazy" width="480" height="270" alt="Slide 8: Shared ranking reshuffles the list"></a><figcaption><b>08</b>Shared ranking reshuffles the list</figcaption></figure>
+<figure><a href="slides/09.png"><img src="slides/thumb/09.webp" loading="lazy" width="480" height="270" alt="Slide 9: Why affinity matters in EDA"></a><figcaption><b>09</b>Why affinity matters in EDA</figcaption></figure>
+<figure><a href="slides/10.png"><img src="slides/thumb/10.webp" loading="lazy" width="480" height="270" alt="Slide 10: Worked example: the score of A–C"></a><figcaption><b>10</b>Worked example: the score of A–C</figcaption></figure>
+<figure><a href="slides/11.png"><img src="slides/thumb/11.webp" loading="lazy" width="480" height="270" alt="Slide 11: Ten pairs, not six"></a><figcaption><b>11</b>Ten pairs, not six</figcaption></figure>
+<figure><a href="slides/12.png"><img src="slides/thumb/12.webp" loading="lazy" width="480" height="270" alt="Slide 12: Recipe two as pseudocode"></a><figcaption><b>12</b>Recipe two as pseudocode</figcaption></figure>
+<figure><a href="slides/13.png"><img src="slides/thumb/13.webp" loading="lazy" width="480" height="270" alt="Slide 13: Recipe two as pseudocode — try these"></a><figcaption><b>13</b>Recipe two as pseudocode — try these</figcaption></figure>
+<figure><a href="slides/14.png"><img src="slides/thumb/14.webp" loading="lazy" width="480" height="270" alt="Slide 14: Same graph, different first merge"></a><figcaption><b>14</b>Same graph, different first merge</figcaption></figure>
+<figure><a href="slides/15.png"><img src="slides/thumb/15.webp" loading="lazy" width="480" height="270" alt="Slide 15: Nets with many pins"></a><figcaption><b>15</b>Nets with many pins</figcaption></figure>
+<figure><a href="slides/16.png"><img src="slides/thumb/16.webp" loading="lazy" width="480" height="270" alt="Slide 16: Nets with many pins — try these"></a><figcaption><b>16</b>Nets with many pins — try these</figcaption></figure>
+<figure><a href="slides/17.png"><img src="slides/thumb/17.webp" loading="lazy" width="480" height="270" alt="Slide 17: Browser lab track"></a><figcaption><b>17</b>Browser lab track</figcaption></figure>
+<figure><a href="slides/18.png"><img src="slides/thumb/18.webp" loading="lazy" width="480" height="270" alt="Slide 18: Implement track"></a><figcaption><b>18</b>Implement track</figcaption></figure>
+<figure><a href="slides/19.png"><img src="slides/thumb/19.webp" loading="lazy" width="480" height="270" alt="Slide 19: Implement track — try these"></a><figcaption><b>19</b>Implement track — try these</figcaption></figure>
+<figure><a href="slides/20.png"><img src="slides/thumb/20.webp" loading="lazy" width="480" height="270" alt="Slide 20: Pitfalls to watch"></a><figcaption><b>20</b>Pitfalls to watch</figcaption></figure>
+<figure><a href="slides/21.png"><img src="slides/thumb/21.webp" loading="lazy" width="480" height="270" alt="Slide 21: Recap: three recipes"></a><figcaption><b>21</b>Recap: three recipes</figcaption></figure>
+<figure><a href="slides/22.png"><img src="slides/thumb/22.webp" loading="lazy" width="480" height="270" alt="Slide 22: Your turn"></a><figcaption><b>22</b>Your turn</figcaption></figure>
       </div>
     </section>
 
     <section id="lab">
       <h2>Interactive lab</h2>
       <div class="card lab-grid">
-        <a href="tools/affinity-metrics/index.html"><img src="img/lab-starter.png" alt="The affinity metrics browser lab: a graph on the left, the score entry and your ranking on the right"></a>
+        <a href="tools/affinity-metrics/index.html"><img src="img/lab-starter.webp" loading="lazy" alt="The affinity metrics browser lab: a graph on the left, the score entry and your ranking on the right"></a>
         <div>
           <p>Do the scoring yourself, right in the browser:</p>
           <ul>
@@ -396,20 +402,25 @@ python3 examples/affinity_check.py --impl my_affinity.py
     <section id="transcript">
       <details class="card transcript">
         <summary>Full narration transcript</summary>
-        <h3>Affinity metrics</h3><p>Before you merge cells or coarsen a netlist, you need a score that says these two should stay together. That score is affinity. In this module you’ll compare plain edge weight with shared-neighbor scoring on the same tiny graph—and watch who wants to merge first. Then you’ll see a graph where the two scores disagree, and a third score for real netlists, where one net can touch many cells.</p>
-<h3>Start with a tiny weighted graph</h3><p>Five cells A through E with edge weights. Heavy edges A–B and D–E both weigh five; the bridge through C is weaker. Affinity will decide which pairs want to cluster first.</p>
-<h3>Edge-weight affinity ranks pairs</h3><p>Pure edge-weight affinity just sorts existing edges. A–B and D–E tie at five; tie-break puts A–B first. That ranking is the simplest merge priority.</p>
-<h3>Shared neighbors boost A–B</h3><p>A and B already share edge weight five. They also share neighbor C. Shared-neighbor affinity adds the minimum of those spokes—one—so A–B rises to six.</p>
-<h3>Shared ranking reshuffles the list</h3><p>Under shared-neighbor scoring, A–B and D–E lead at six. Weak edge A–C jumps to five because of B. Non-edges like B–D can appear from shared support alone.</p>
-<h3>Why affinity matters in EDA</h3><p>Affinity is the objective’s local preference: which cells belong together before global constraints. Bad affinity means bad merges, and harder refinement later.</p>
-<h3>Shared-neighbor scoring as pseudocode</h3><p>Here is the shared-neighbor score as code. First, every existing edge adds its weight to its pair. Then, for every pair of nodes, look at each neighbor they have in common, and add the smaller of the two connecting weights. If a pair ends up with a score above zero, keep it. Finally, sort by score, highest first, and break ties alphabetically, so your list comes out the same every time.</p>
-<h3>Ten pairs, not six</h3><p>Under shared-neighbor scoring the starter graph produces ten pairs, not six. Four of them have no edge at all. B and D both connect to C, so B–D scores the smaller spoke, two. A–D, A–E and B–E each pick up one through C. These pairs aren&#x27;t mistakes: they say two cells are close even without a direct wire. A pair is only left out when its score would be zero.</p>
-<h3>Same graph, different first merge</h3><p>Here&#x27;s why the choice matters. Take a tight triangle P, Q, R, with every edge at weight four, and a lone pair X–Y at weight five. Edge weight picks X–Y first, because five beats four. Shared-neighbor scoring gives P–Q four plus four through R: eight. X–Y has no common neighbor, so it stays at five. Same graph, same merge engine, different first merge.</p>
-<h3>Nets with many pins</h3><p>Real netlists aren&#x27;t simple edges. One net can connect many cells, like a reset or an enable line. If you count every shared net at full weight, cells A and B look close just because both see reset. Pin-count scoring fixes this. Each net splits its weight across its pins: weight divided by pins minus one. A two-pin net counts fully. A five-pin net gives only a quarter to each pair.</p>
-<h3>Browser lab track</h3><p>In the browser lab, you do the scoring. Click two nodes to pick a pair, even a pair with no edge, work out its score by hand, and type it in. You can also build your own ranking, one pair at a time, and change edge weights to see which pair merges first. You can switch between all three graphs and all the scores. The ten challenges check what you typed, your ranking and your edits. The breakdown and the full ranking are there for study, but anything they reveal no longer counts.</p>
-<h3>Implement track</h3><p>In the implement track, print both rankings for the starter graph, then for the priority graph, and compare the first line of each table. Then write your own scoring functions, including pin-count, and run the golden checker on your file. It checks all three scores, and it feeds the edges in a scrambled order, so a missing tie-break shows up as a failure.</p>
-<h3>Pitfalls to watch</h3><p>Watch for four things. Counting an undirected edge twice, once from each end. Adding the larger spoke instead of the smaller one, which makes everything look close. Forgetting the tie-break, so A–B and D–E swap places from run to run. And using raw net counts on a netlist, where wide nets like reset glue unrelated cells together.</p>
-<h3>Your turn</h3><p>Match all three golden checks, then explain two things in your own words: why A–C climbs under shared-neighbor scoring, and why the priority graph changes its first merge. Take the short quiz, then continue to greedy pair merge, where these scores become the merge policy.</p>
+        <h3>Affinity metrics</h3><p>Which parts of a chip belong together? That is the question this lab answers. A chip is made of millions of tiny parts called cells. Before a computer can arrange them, it needs to know which cells like to stay close. That liking is a number called affinity. In this lab you&#x27;ll learn three ways to compute it, and see why the choice matters.</p>
+<h3>From a chip to a graph</h3><p>A chip contains cells, the small building blocks of the circuit. Cells talk to each other through wires. We draw each cell as a dot, called a node. A line between two dots is an edge: it means the two cells are wired together. The number on an edge is its weight: how many wires join the pair. So A–B has weight five: five wires connect A and B. This drawing is called a graph, and it&#x27;s the map every algorithm in this course works on.</p>
+<h3>Why group cells?</h3><p>Cells that exchange many signals should sit close together. Short wires make the chip faster and save energy. Grouping close cells is called clustering, and each group is a cluster. Think of a seating plan: friends who chat a lot sit at the same table. Here, A, B and C form one group, and D and E form another. Only the red edges cross between the groups, and we want as few of those as possible.</p>
+<h3>What is affinity?</h3><p>Affinity is a score for each pair of cells. A high score means these two should be in the same group. A low score means they can be apart. Clustering algorithms merge the pair with the highest score first. So the recipe for the score decides everything that follows. This lab compares three recipes on the same small example.</p>
+<h3>Start with a tiny weighted graph</h3><p>Here is our example for the whole lab: five cells, A to E. The heavy edges are A–B and D–E, with weight five each. C sits in the middle, with thinner links to the others. Keep this picture in mind: we&#x27;re going to give a score to every pair of cells in it.</p>
+<h3>Edge-weight affinity ranks pairs</h3><p>Recipe one is the simplest. The score of a pair is just the weight of the edge between them. Then we sort the pairs from highest to lowest, like a leaderboard. A–B and D–E are tied at five. When two scores are equal, we break the tie in alphabetical order, so A–B comes first. A fixed tie-break matters: it makes the computer give the same answer every single time.</p>
+<h3>Shared neighbors boost A–B</h3><p>Recipe two adds an idea from everyday life: friends of friends. If two people share a close friend, they&#x27;re probably close too. A and B are directly linked with weight five. They also share a neighbor: C. We add the weaker of the two links through C, which is one, so A–B rises to six. Why the weaker link? Because a chain is only as strong as its weakest link.</p>
+<h3>Shared ranking reshuffles the list</h3><p>With recipe two, A–B and D–E still lead, now at six. But look at A–C: on its own it was a weak edge of one, and now it jumps to five, thanks to B. Even pairs with no edge at all, like B–D, get a score, because they share a neighbor.</p>
+<h3>Why affinity matters in EDA</h3><p>EDA stands for electronic design automation: the software that designs chips. In EDA, affinity is the local preference: which cells belong together, before any rule about the whole chip. Bad affinity means bad merges, and fixing them later is much harder.</p>
+<h3>Worked example: the score of A–C</h3><p>Let&#x27;s compute one score together, step by step. Step one: the direct edge A–C has weight one. Step two: A and C have one neighbor in common, B. The links through B weigh five and four, so we keep the smaller one: four. Step three: add them up, one plus four makes five. A–C was weak alone, but becomes strong once its shared friend counts.</p>
+<h3>Ten pairs, not six</h3><p>With recipe two, our small graph gives ten pairs instead of six. Four of them have no wire at all between them. For example, B and D are not wired together, but both are wired to C. So B–D gets the weaker of those two links: two. It&#x27;s like two people who have never met but share a best friend. Only pairs whose score would be zero are left out.</p>
+<h3>Recipe two as pseudocode</h3><p>Here is recipe two written as steps a computer can follow. First, every edge adds its weight to its own pair. Next, for every pair of nodes, look at each neighbor they have in common. For each shared neighbor, add the smaller of its two links to the pair. Keep every pair whose score ends up above zero. Finally, sort from highest to lowest score, and break ties alphabetically.</p>
+<h3>Same graph, different first merge</h3><p>Here&#x27;s a second example that shows why the recipe matters. Take a tight triangle P, Q, R, with every edge at weight four. Next to it, a lone pair X–Y has weight five. Recipe one picks X–Y first, because five beats four. Recipe two gives P–Q four, plus four through R: eight, so P–Q goes first. Same graph, same merge rule, but a different first merge.</p>
+<h3>Nets with many pins</h3><p>On a real chip, one wire can connect many cells at once. Such a shared wire is called a net, and each cell it touches is a pin. Think of a group chat with fifty people: it says little about who is friends. A private message between two people says much more. Recipe three works the same way: each net shares its weight among its pins. The rule is the weight divided by the number of pins, minus one. Here, the enable and reset nets touch five cells each, so they give only a quarter to each pair. The private net between E and F gives its full weight, one.</p>
+<h3>Browser lab track</h3><p>Now it&#x27;s your turn to compute scores, in the browser lab. Click two nodes to pick a pair, even a pair with no edge, work out its score by hand, and type it in. The lab tells you right away if you&#x27;re correct. You can also build your own ranking, one pair at a time, and change edge weights to see which pair merges first. The ten challenges go from easy to hard. If you get stuck, the breakdown button shows the calculation, but that answer no longer counts for the challenge.</p>
+<h3>Implement track</h3><p>If you like programming, the implement track is for you. First, print both rankings with the reference program, for the starter graph and then for the priority graph. Then write your own three scoring functions in Python. Finally, run the checker on your file. It compares your answers with the correct ones, and it feeds the edges in a scrambled order, so a missing tie-break shows up as a failure.</p>
+<h3>Pitfalls to watch</h3><p>Watch out for four common mistakes. Counting an edge twice, once from each end. Adding the stronger link instead of the weaker one, which makes every pair look close. Forgetting the tie-break, so A–B and D–E swap places from one run to the next. And counting big shared nets at full weight, which glues unrelated cells together.</p>
+<h3>Recap: three recipes</h3><p>Recipe one, edge weight: look only at the direct wire. Recipe two, shared neighbors: add the help of common friends. Recipe three, pin count: big shared nets count less than private ones. Ties are broken alphabetically, so results never change between runs. Different recipes can choose a different first merge. Choosing the recipe is a design decision, not a detail.</p>
+<h3>Your turn</h3><p>Try the browser lab challenges, or write the three recipes yourself and pass the checker. Then explain two things in your own words. First, why does A–C climb with recipe two? Second, why does the priority graph change its first merge? Take the short quiz, then move on to greedy pair merge. There, these scores become the rule for merging.</p>
       </details>
     </section>
   </main>

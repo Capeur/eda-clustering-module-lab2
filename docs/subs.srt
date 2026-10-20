@@ -1,315 +1,491 @@
 1
-00:00:00,000 --> 00:00:04,961
-Before you merge cells or coarsen a netlist, you need a score that says these two
+00:00:00,000 --> 00:00:02,573
+Which parts of a chip belong together?
 
 2
-00:00:04,961 --> 00:00:06,247
-should stay together.
+00:00:02,573 --> 00:00:05,146
+That is the question this lab answers.
 
 3
-00:00:06,247 --> 00:00:07,655
-That score is affinity.
+00:00:05,146 --> 00:00:08,803
+A chip is made of millions of tiny parts called cells.
 
 4
-00:00:07,655 --> 00:00:12,739
-In this module you’ll compare plain edge weight with shared-neighbor scoring on the
+00:00:08,803 --> 00:00:14,491
+Before a computer can arrange them, it needs to know which cells like to stay close.
 
 5
-00:00:12,739 --> 00:00:15,923
-same tiny graph, and watch who wants to merge first.
+00:00:14,491 --> 00:00:17,199
+That liking is a number called affinity.
 
 6
-00:00:15,923 --> 00:00:20,884
-Then you’ll see a graph where the two scores disagree, and a third score for real
+00:00:17,199 --> 00:00:22,752
+In this lab you'll learn three ways to compute it, and see why the choice matters.
 
 7
-00:00:20,884 --> 00:00:23,640
-netlists, where one net can touch many cells.
+00:00:22,752 --> 00:00:27,256
+A chip contains cells, the small building blocks of the circuit.
 
 8
-00:00:23,640 --> 00:00:26,638
-Five cells A through E with edge weights.
+00:00:27,256 --> 00:00:30,001
+Cells talk to each other through wires.
 
 9
-00:00:26,638 --> 00:00:32,050
-Heavy edges A, B and D, E both weigh five; the bridge through C is weaker.
+00:00:30,001 --> 00:00:32,957
+We draw each cell as a dot, called a node.
 
 10
-00:00:32,050 --> 00:00:36,072
-Affinity will decide which pairs want to cluster first.
+00:00:32,957 --> 00:00:38,446
+A line between two dots is an edge: it means the two cells are wired together.
 
 11
-00:00:36,072 --> 00:00:40,436
-Pure edge-weight affinity just sorts existing edges.
+00:00:38,446 --> 00:00:43,091
+The number on an edge is its weight: how many wires join the pair.
 
 12
-00:00:40,436 --> 00:00:44,884
-A, B and D, E tie at five; tie-break puts A, B first.
+00:00:43,091 --> 00:00:46,751
+So A, B has weight five: five wires connect A and B.
 
 13
-00:00:44,884 --> 00:00:48,576
-That ranking is the simplest merge priority.
+00:00:46,751 --> 00:00:52,311
+This drawing is called a graph, and it's the map every algorithm in this course
 
 14
-00:00:48,576 --> 00:00:51,428
-A and B already share edge weight five.
+00:00:52,311 --> 00:00:52,944
+works on.
 
 15
-00:00:51,428 --> 00:00:53,402
-They also share neighbor C.
+00:00:52,944 --> 00:00:57,076
+Cells that exchange many signals should sit close together.
 
 16
-00:00:53,402 --> 00:00:59,252
-Shared-neighbor affinity adds the minimum of those spokes, one, so A, B rises to
+00:00:57,076 --> 00:01:00,508
+Short wires make the chip faster and save energy.
 
 17
-00:00:59,252 --> 00:00:59,544
-six.
+00:01:00,508 --> 00:01:05,480
+Grouping close cells is called clustering, and each group is a cluster.
 
 18
-00:00:59,544 --> 00:01:03,876
-Under shared-neighbor scoring, A, B and D, E lead at six.
+00:01:05,480 --> 00:01:10,383
+Think of a seating plan: friends who chat a lot sit at the same table.
 
 19
-00:01:03,876 --> 00:01:07,068
-Weak edge A, C jumps to five because of B.
+00:01:10,383 --> 00:01:14,445
+Here, A, B and C form one group, and D and E form another.
 
 20
-00:01:07,068 --> 00:01:11,400
-Non-edges like B, D can appear from shared support alone.
+00:01:14,445 --> 00:01:19,698
+Only the red edges cross between the groups, and we want as few of those as
 
 21
-00:01:11,400 --> 00:01:16,832
-Affinity is the objective’s local preference: which cells belong together before
+00:01:19,698 --> 00:01:20,328
+possible.
 
 22
-00:01:16,832 --> 00:01:18,122
-global constraints.
+00:01:20,328 --> 00:01:23,305
+Affinity is a score for each pair of cells.
 
 23
-00:01:18,122 --> 00:01:22,128
-Bad affinity means bad merges, and harder refinement later.
+00:01:23,305 --> 00:01:27,250
+A high score means these two should be in the same group.
 
 24
-00:01:22,128 --> 00:01:24,949
-Here is the shared-neighbor score as code.
+00:01:27,250 --> 00:01:29,743
+A low score means they can be apart.
 
 25
-00:01:24,949 --> 00:01:28,644
-First, every existing edge adds its weight to its pair.
+00:01:29,743 --> 00:01:34,311
+Clustering algorithms merge the pair with the highest score first.
 
 26
-00:01:28,644 --> 00:01:34,085
-Then, for every pair of nodes, look at each neighbor they have in common, and add
+00:01:34,311 --> 00:01:38,465
+So the recipe for the score decides everything that follows.
 
 27
-00:01:34,085 --> 00:01:36,906
-the smaller of the two connecting weights.
+00:01:38,465 --> 00:01:42,480
+This lab compares three recipes on the same small example.
 
 28
-00:01:36,906 --> 00:01:40,332
-If a pair ends up with a score above zero, keep it.
+00:01:42,480 --> 00:01:46,634
+Here is our example for the whole lab: five cells, A to E.
 
 29
-00:01:40,332 --> 00:01:45,841
-Finally, sort by score, highest first, and break ties alphabetically, so your list
+00:01:46,634 --> 00:01:50,717
+The heavy edges are A, B and D, E, with weight five each.
 
 30
-00:01:45,841 --> 00:01:47,856
-comes out the same every time.
+00:01:50,717 --> 00:01:54,656
+C sits in the middle, with thinner links to the others.
 
 31
-00:01:47,856 --> 00:01:53,700
-Under shared-neighbor scoring the starter graph produces ten pairs, not six.
+00:01:54,656 --> 00:02:00,672
+Keep this picture in mind: we're going to give a score to every pair of cells in it.
 
 32
-00:01:53,700 --> 00:01:56,237
-Four of them have no edge at all.
+00:02:00,672 --> 00:02:02,638
+Recipe one is the simplest.
 
 33
-00:01:56,237 --> 00:02:01,236
-B and D both connect to C, so B, D scores the smaller spoke, two.
+00:02:02,638 --> 00:02:07,297
+The score of a pair is just the weight of the edge between them.
 
 34
-00:02:01,236 --> 00:02:04,850
-A, D, A, E and B, E each pick up one through C.
+00:02:07,297 --> 00:02:12,101
+Then we sort the pairs from highest to lowest, like a leaderboard.
 
 35
-00:02:04,850 --> 00:02:10,924
-These pairs aren't mistakes: they say two cells are close even without a direct
+00:02:12,101 --> 00:02:14,358
+A, B and D, E are tied at five.
 
 36
-00:02:10,924 --> 00:02:11,309
-wire.
+00:02:14,358 --> 00:02:20,182
+When two scores are equal, we break the tie in alphabetical order, so A, B comes
 
 37
-00:02:11,309 --> 00:02:15,384
-A pair is only left out when its score would be zero.
+00:02:20,182 --> 00:02:20,619
+first.
 
 38
-00:02:15,384 --> 00:02:17,770
-Here's why the choice matters.
+00:02:20,619 --> 00:02:26,588
+A fixed tie-break matters: it makes the computer give the same answer every single
 
 39
-00:02:17,770 --> 00:02:24,370
-Take a tight triangle P, Q, R, with every edge at weight four, and a lone pair X, Y
+00:02:26,588 --> 00:02:26,952
+time.
 
 40
-00:02:24,370 --> 00:02:25,563
-at weight five.
+00:02:26,952 --> 00:02:31,492
+Recipe two adds an idea from everyday life: friends of friends.
 
 41
-00:02:25,563 --> 00:02:29,857
-Edge weight picks X, Y first, because five beats four.
+00:02:31,492 --> 00:02:36,032
+If two people share a close friend, they're probably close too.
 
 42
-00:02:29,857 --> 00:02:35,185
-Shared-neighbor scoring gives P, Q four plus four through R: eight.
+00:02:36,032 --> 00:02:39,276
+A and B are directly linked with weight five.
 
 43
-00:02:35,185 --> 00:02:39,081
-X, Y has no common neighbor, so it stays at five.
+00:02:39,276 --> 00:02:41,438
+They also share a neighbor: C.
 
 44
-00:02:39,081 --> 00:02:43,296
-Same graph, same merge engine, different first merge.
+00:02:41,438 --> 00:02:47,275
+We add the weaker of the two links through C, which is one, so A, B rises to six.
 
 45
-00:02:43,296 --> 00:02:45,813
-Real netlists aren't simple edges.
+00:02:47,275 --> 00:02:48,716
+Why the weaker link?
 
 46
-00:02:45,813 --> 00:02:50,478
-One net can connect many cells, like a reset or an enable line.
+00:02:48,716 --> 00:02:52,608
+Because a chain is only as strong as its weakest link.
 
 47
-00:02:50,478 --> 00:02:56,623
-If you count every shared net at full weight, cells A and B look close just because
+00:02:52,608 --> 00:02:56,893
+With recipe two, A, B and D, E still lead, now at six.
 
 48
-00:02:56,623 --> 00:02:57,733
-both see reset.
+00:02:56,893 --> 00:03:03,320
+But look at A, C: on its own it was a weak edge of one, and now it jumps to five,
 
 49
-00:02:57,733 --> 00:02:59,880
-Pin-count scoring fixes this.
+00:03:03,320 --> 00:03:04,272
+thanks to B.
 
 50
-00:02:59,880 --> 00:03:05,581
-Each net splits its weight across its pins: weight divided by pins minus one.
+00:03:04,272 --> 00:03:10,302
+Even pairs with no edge at all, like B, D, get a score, because they share a
 
 51
-00:03:05,581 --> 00:03:07,580
-A two-pin net counts fully.
+00:03:10,302 --> 00:03:11,016
+neighbor.
 
 52
-00:03:07,580 --> 00:03:11,208
-A five-pin net gives only a quarter to each pair.
+00:03:11,016 --> 00:03:16,443
+EDA stands for electronic design automation: the software that designs chips.
 
 53
-00:03:11,208 --> 00:03:13,720
-In the browser lab, you do the scoring.
+00:03:16,443 --> 00:03:22,151
+In EDA, affinity is the local preference: which cells belong together, before any
 
 54
-00:03:13,720 --> 00:03:18,810
-Click two nodes to pick a pair, even a pair with no edge, work out its score by
+00:03:22,151 --> 00:03:23,984
+rule about the whole chip.
 
 55
-00:03:18,810 --> 00:03:20,163
-hand, and type it in.
+00:03:23,984 --> 00:03:28,776
+Bad affinity means bad merges, and fixing them later is much harder.
 
 56
-00:03:20,163 --> 00:03:25,509
-You can also build your own ranking, one pair at a time, and change edge weights to
+00:03:28,776 --> 00:03:32,335
+Let's compute one score together, step by step.
 
 57
-00:03:25,509 --> 00:03:27,313
-see which pair merges first.
+00:03:32,335 --> 00:03:35,817
+Step one: the direct edge A, C has weight one.
 
 58
-00:03:27,313 --> 00:03:31,114
-You can switch between all three graphs and all the scores.
+00:03:35,817 --> 00:03:39,527
+Step two: A and C have one neighbor in common, B.
 
 59
-00:03:31,114 --> 00:03:35,559
-The ten challenges check what you typed, your ranking and your edits.
+00:03:39,527 --> 00:03:45,130
+The links through B weigh five and four, so we keep the smaller one: four.
 
 60
-00:03:35,559 --> 00:03:40,906
-The breakdown and the full ranking are there for study, but anything they reveal no
+00:03:45,130 --> 00:03:48,916
+Step three: add them up, one plus four makes five.
 
 61
-00:03:40,906 --> 00:03:41,808
-longer counts.
+00:03:48,916 --> 00:03:54,216
+A, C was weak alone, but becomes strong once its shared friend counts.
 
 62
-00:03:41,808 --> 00:03:46,693
-In the implement track, print both rankings for the starter graph, then for the
+00:03:54,216 --> 00:03:59,009
+With recipe two, our small graph gives ten pairs instead of six.
 
 63
-00:03:46,693 --> 00:03:50,218
-priority graph, and compare the first line of each table.
+00:03:59,009 --> 00:04:02,453
+Four of them have no wire at all between them.
 
 64
-00:03:50,218 --> 00:03:55,042
-Then write your own scoring functions, including pin-count, and run the golden
+00:04:02,453 --> 00:04:07,621
+For example, B and D are not wired together, but both are wired to C.
 
 65
-00:03:55,042 --> 00:03:56,341
-checker on your file.
+00:04:07,621 --> 00:04:11,215
+So B, D gets the weaker of those two links: two.
 
 66
-00:03:56,341 --> 00:04:01,102
-It checks all three scores, and it feeds the edges in a scrambled order, so a
+00:04:11,215 --> 00:04:16,008
+It's like two people who have never met but share a best friend.
 
 67
-00:04:01,102 --> 00:04:03,576
-missing tie-break shows up as a failure.
+00:04:16,008 --> 00:04:19,752
+Only pairs whose score would be zero are left out.
 
 68
-00:04:03,576 --> 00:04:05,155
-Watch for four things.
+00:04:19,752 --> 00:04:23,719
+Here is recipe two written as steps a computer can follow.
 
 69
-00:04:05,155 --> 00:04:09,031
-Counting an undirected edge twice, once from each end.
+00:04:23,719 --> 00:04:27,139
+First, every edge adds its weight to its own pair.
 
 70
-00:04:09,031 --> 00:04:14,702
-Adding the larger spoke instead of the smaller one, which makes everything look
+00:04:27,139 --> 00:04:32,132
+Next, for every pair of nodes, look at each neighbor they have in common.
 
 71
-00:04:14,702 --> 00:04:15,133
-close.
+00:04:32,132 --> 00:04:36,988
+For each shared neighbor, add the smaller of its two links to the pair.
 
 72
-00:04:15,133 --> 00:04:20,229
-Forgetting the tie-break, so A, B and D, E swap places from run to run.
+00:04:36,988 --> 00:04:40,203
+Keep every pair whose score ends up above zero.
 
 73
-00:04:20,229 --> 00:04:25,971
-And using raw net counts on a netlist, where wide nets like reset glue unrelated
+00:04:40,203 --> 00:04:45,264
+Finally, sort from highest to lowest score, and break ties alphabetically.
 
 74
-00:04:25,971 --> 00:04:27,048
-cells together.
+00:04:45,264 --> 00:04:50,092
+Here's a second example that shows why the recipe matters.
 
 75
-00:04:27,048 --> 00:04:32,301
-Match all three golden checks, then explain two things in your own words: why A, C
+00:04:50,092 --> 00:04:55,253
+Take a tight triangle P, Q, R, with every edge at weight four.
 
 76
-00:04:32,301 --> 00:04:37,554
-climbs under shared-neighbor scoring, and why the priority graph changes its first
+00:04:55,253 --> 00:04:59,000
+Next to it, a lone pair X, Y has weight five.
 
 77
-00:04:37,554 --> 00:04:37,938
-merge.
+00:04:59,000 --> 00:05:03,412
+Recipe one picks X, Y first, because five beats four.
 
 78
-00:04:37,938 --> 00:04:43,191
-Take the short quiz, then continue to greedy pair merge, where these scores become
+00:05:03,412 --> 00:05:09,655
+Recipe two gives P, Q four, plus four through R: eight, so P, Q goes first.
 
 79
-00:04:43,191 --> 00:04:44,280
-the merge policy.
+00:05:09,655 --> 00:05:14,400
+Same graph, same merge rule, but a different first merge.
+
+80
+00:05:14,400 --> 00:05:18,246
+On a real chip, one wire can connect many cells at once.
+
+81
+00:05:18,246 --> 00:05:23,053
+Such a shared wire is called a net, and each cell it touches is a pin.
+
+82
+00:05:23,053 --> 00:05:28,340
+Think of a group chat with fifty people: it says little about who is friends.
+
+83
+00:05:28,340 --> 00:05:31,911
+A private message between two people says much more.
+
+84
+00:05:31,911 --> 00:05:37,062
+Recipe three works the same way: each net shares its weight among its pins.
+
+85
+00:05:37,062 --> 00:05:41,457
+The rule is the weight divided by the number of pins, minus one.
+
+86
+00:05:41,457 --> 00:05:47,088
+Here, the enable and reset nets touch five cells each, so they give only a quarter
+
+87
+00:05:47,088 --> 00:05:47,980
+to each pair.
+
+88
+00:05:47,980 --> 00:05:52,032
+The private net between E and F gives its full weight, one.
+
+89
+00:05:52,032 --> 00:05:55,714
+Now it's your turn to compute scores, in the browser lab.
+
+90
+00:05:55,714 --> 00:06:00,818
+Click two nodes to pick a pair, even a pair with no edge, work out its score by
+
+91
+00:06:00,818 --> 00:06:02,174
+hand, and type it in.
+
+92
+00:06:02,174 --> 00:06:05,210
+The lab tells you right away if you're correct.
+
+93
+00:06:05,210 --> 00:06:10,572
+You can also build your own ranking, one pair at a time, and change edge weights to
+
+94
+00:06:10,572 --> 00:06:12,381
+see which pair merges first.
+
+95
+00:06:12,381 --> 00:06:14,965
+The ten challenges go from easy to hard.
+
+96
+00:06:14,965 --> 00:06:20,133
+If you get stuck, the breakdown button shows the calculation, but that answer no
+
+97
+00:06:20,133 --> 00:06:22,200
+longer counts for the challenge.
+
+98
+00:06:22,200 --> 00:06:25,767
+If you like programming, the implement track is for you.
+
+99
+00:06:25,767 --> 00:06:30,862
+First, print both rankings with the reference program, for the starter graph and
+
+100
+00:06:30,862 --> 00:06:32,646
+then for the priority graph.
+
+101
+00:06:32,646 --> 00:06:36,085
+Then write your own three scoring functions in Python.
+
+102
+00:06:36,085 --> 00:06:38,506
+Finally, run the checker on your file.
+
+103
+00:06:38,506 --> 00:06:43,283
+It compares your answers with the correct ones, and it feeds the edges in a
+
+104
+00:06:43,283 --> 00:06:47,232
+scrambled order, so a missing tie-break shows up as a failure.
+
+105
+00:06:47,232 --> 00:06:49,724
+Watch out for four common mistakes.
+
+106
+00:06:49,724 --> 00:06:52,785
+Counting an edge twice, once from each end.
+
+107
+00:06:52,785 --> 00:06:58,408
+Adding the stronger link instead of the weaker one, which makes every pair look
+
+108
+00:06:58,408 --> 00:06:58,836
+close.
+
+109
+00:06:58,836 --> 00:07:04,531
+Forgetting the tie-break, so A, B and D, E swap places from one run to the next.
+
+110
+00:07:04,531 --> 00:07:10,368
+And counting big shared nets at full weight, which glues unrelated cells together.
+
+111
+00:07:10,368 --> 00:07:14,303
+Recipe one, edge weight: look only at the direct wire.
+
+112
+00:07:14,303 --> 00:07:18,747
+Recipe two, shared neighbors: add the help of common friends.
+
+113
+00:07:18,747 --> 00:07:23,847
+Recipe three, pin count: big shared nets count less than private ones.
+
+114
+00:07:23,847 --> 00:07:28,875
+Ties are broken alphabetically, so results never change between runs.
+
+115
+00:07:28,875 --> 00:07:32,737
+Different recipes can choose a different first merge.
+
+116
+00:07:32,737 --> 00:07:36,744
+Choosing the recipe is a design decision, not a detail.
+
+117
+00:07:36,744 --> 00:07:42,521
+Try the browser lab challenges, or write the three recipes yourself and pass the
+
+118
+00:07:42,521 --> 00:07:43,099
+checker.
+
+119
+00:07:43,099 --> 00:07:46,132
+Then explain two things in your own words.
+
+120
+00:07:46,132 --> 00:07:49,237
+First, why does A, C climb with recipe two?
+
+121
+00:07:49,237 --> 00:07:53,498
+Second, why does the priority graph change its first merge?
+
+122
+00:07:53,498 --> 00:07:57,470
+Take the short quiz, then move on to greedy pair merge.
+
+123
+00:07:57,470 --> 00:08:00,936
+There, these scores become the rule for merging.

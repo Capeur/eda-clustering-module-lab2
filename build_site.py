@@ -45,6 +45,38 @@ sys.path.insert(0, str(HERE / "i18n"))
 from strings import LANGS  # noqa: E402
 
 
+FONTS = [  # self-hosted (fonts.googleapis.com is blocked or very slow in some regions)
+    ("Source Sans 3", 400, "source-sans-3-latin-400-normal.woff2"),
+    ("Source Sans 3", 600, "source-sans-3-latin-600-normal.woff2"),
+    ("Source Sans 3", 700, "source-sans-3-latin-700-normal.woff2"),
+    ("Fraunces", 500, "fraunces-latin-500-normal.woff2"),
+    ("Fraunces", 700, "fraunces-latin-700-normal.woff2"),
+    ("IBM Plex Mono", 400, "ibm-plex-mono-latin-400-normal.woff2"),
+    ("IBM Plex Mono", 500, "ibm-plex-mono-latin-500-normal.woff2"),
+]
+GOOGLE_FONTS = re.compile(r'@import url\("https://fonts\.googleapis\.com[^)]*\);\s*')
+
+
+def fontface_css(prefix: str) -> str:
+    """@font-face rules pointing at docs/fonts/ (prefix = path from the CSS file)."""
+    return "".join(
+        f'@font-face{{font-family:"{fam}";font-style:normal;font-weight:{w};font-display:swap;'
+        f'src:url("{prefix}{f}") format("woff2");}}\n'
+        for fam, w, f in FONTS
+    )
+
+
+def webp(src: Path, dest: Path, width: int, quality: int = 82) -> None:
+    """Resized WebP copy for fast page loads (the full PNG stays available)."""
+    from PIL import Image
+
+    im = Image.open(src).convert("RGB")
+    if im.width > width:
+        im = im.resize((width, round(im.height * width / im.width)), Image.LANCZOS)
+    dest.parent.mkdir(parents=True, exist_ok=True)
+    im.save(dest, "WEBP", quality=quality, method=6)
+
+
 def die(msg: str) -> None:
     print(f"ERROR: {msg}", file=sys.stderr)
     raise SystemExit(1)
@@ -80,7 +112,10 @@ def render_slides(pdf: Path, out: Path) -> int:
     subprocess.run(["pdftoppm", "-png", "-r", "110", str(pdf), str(dest / "s")], check=True)
     pngs = sorted(dest.glob("s-*.png"), key=lambda p: int(re.findall(r"\d+", p.stem)[-1]))
     for i, p in enumerate(pngs, 1):
-        p.rename(dest / f"{i:02d}.png")
+        full = dest / f"{i:02d}.png"
+        p.rename(full)
+        webp(full, dest / "thumb" / f"{i:02d}.webp", 480)
+    webp(dest / "01.png", dest / "poster.webp", 1000)
     return len(pngs)
 
 
@@ -177,6 +212,12 @@ def copy_lab(repo: Path, out: Path, t: dict, other_lab: str) -> None:
         todo += re.findall(r'from\s+"\./([^"]+)"', (assets / name).read_text(encoding="utf-8"))
     for name in sorted(needed):
         shutil.copy2(assets / name, dest_assets / name)
+        if name.endswith(".css"):
+            css = (dest_assets / name).read_text(encoding="utf-8")
+            if GOOGLE_FONTS.search(css):
+                fonts_prefix = "../fonts/" if out.name != "fr" else "../../fonts/"
+                css = fontface_css(fonts_prefix) + GOOGLE_FONTS.sub("", css)
+                (dest_assets / name).write_text(css, encoding="utf-8")
 
     # Standalone header with the language switch (platform nav/search are not deployed here).
     page = (dest_tool / "index.html").read_text(encoding="utf-8")
@@ -257,6 +298,7 @@ def build_language(repo: Path, out: Path, lang: str, base: str) -> dict:
     for name in ["lab-starter.png", "priority-graph.png", "real-shell.png"]:
         src = images / name if (images / name).is_file() else en_module / "assets" / name
         shutil.copy2(src, out / "img" / name)
+    webp(out / "img" / "lab-starter.png", out / "img" / "lab-starter.webp", 1100)
     n_slides = render_slides(media / "slides.pdf", out)
 
     # Video + subtitles (built by narrate_clips.sh / make_fr_media.py).
@@ -291,7 +333,7 @@ def build_language(repo: Path, out: Path, lang: str, base: str) -> dict:
     if has_video:
         track = (f'<track kind="subtitles" src="subs.vtt" srclang="{lang}" label="{t["subs_label"]}" default>'
                  if has_subs else "")
-        video_html = (f'<video controls preload="metadata" poster="slides/01.png">'
+        video_html = (f'<video controls preload="metadata" poster="slides/poster.webp">'
                       f'<source src="video.mp4" type="video/mp4">{track}{t["video_fallback"]}</video>')
         downloads = f'<a class="btn" href="video.mp4" download>{t["dl_video"]}</a>' + (
             f'<a class="btn" href="subs.srt" download>{t["dl_subs"]}</a>' if has_subs else "")
@@ -305,7 +347,7 @@ def build_language(repo: Path, out: Path, lang: str, base: str) -> dict:
         return titles[i - 1] if i <= len(titles) else ""
 
     slides = "\n".join(
-        f'<figure><a href="slides/{i:02d}.png"><img src="slides/{i:02d}.png" loading="lazy" '
+        f'<figure><a href="slides/{i:02d}.png"><img src="slides/thumb/{i:02d}.webp" loading="lazy" width="480" height="270" '
         f'alt="{t["slide_alt"]} {i}: {esc(title_of(i))}"></a>'
         f"<figcaption><b>{i:02d}</b>{esc(title_of(i))}</figcaption></figure>"
         for i in range(1, n_slides + 1)
@@ -346,7 +388,8 @@ def main() -> int:
         shutil.rmtree(out)
     out.mkdir(parents=True)
     (out / ".nojekyll").write_text("", encoding="utf-8")
-    shutil.copy2(SRC / "page.css", out / "page.css")
+    shutil.copytree(SRC / "fonts", out / "fonts")
+    (out / "page.css").write_text(fontface_css("fonts/") + (SRC / "page.css").read_text(encoding="utf-8"), encoding="utf-8")
     shutil.copy2(SRC / "quiz.js", out / "quiz.js")
     (out / "examples").mkdir()
     for f, _ in LANGS["en"]["files"]:  # code files are shared by both languages

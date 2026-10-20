@@ -6,7 +6,39 @@ paginate: true
 
 # Métriques d'affinité
 
-Avant de fusionner des cellules ou de réduire une netlist, il faut savoir lesquelles vont ensemble
+Quelles parties d'une puce vont ensemble ?
+
+---
+
+## D'une puce à un graphe
+- Une puce contient des cellules, les petites briques du circuit
+- Les cellules communiquent entre elles par des fils
+- On dessine chaque cellule comme un point, appelé nœud
+- Un trait entre deux points est une arête : les deux cellules sont reliées
+- Le nombre sur une arête est son poids : combien de fils relient la paire
+- Ainsi, A–B a un poids de cinq : cinq fils relient A et B
+![snippet](assets/chip-to-graph.png)
+
+---
+
+## Pourquoi regrouper les cellules ?
+- Les cellules qui échangent beaucoup de signaux doivent être proches
+- Des fils courts rendent la puce plus rapide et économisent de l'énergie
+- Regrouper les cellules proches s'appelle le clustering, et chaque groupe est un cluster
+- Pensez à un plan de classe : les amis qui discutent beaucoup s'assoient ensemble
+- Ici, A, B et C forment un groupe, et D et E en forment un autre
+- Seules les arêtes rouges passent d'un groupe à l'autre, et on en veut le moins possible
+![snippet](assets/clustering-groups.png)
+
+---
+
+## Qu'est-ce que l'affinité ?
+- L'affinité est un score donné à chaque paire de cellules
+- Un score élevé veut dire que ces deux-là doivent être dans le même groupe
+- Un score faible veut dire qu'elles peuvent être séparées
+- Les algorithmes de clustering fusionnent d'abord la paire qui a le meilleur score
+- La recette du score décide donc de tout ce qui suit
+- Ce lab compare trois recettes sur le même petit exemple
 
 ---
 
@@ -35,17 +67,38 @@ Avant de fusionner des cellules ou de réduire une netlist, il faut savoir lesqu
 
 ---
 
-## Le score par voisins communs en pseudo-code
-- Voici le score par voisins communs sous forme de code
-- D'abord, chaque arête existante ajoute son poids à sa paire
-- Ensuite, on prend chaque paire de nœuds et chacun de leurs voisins communs
-- Pour chaque voisin commun, on ajoute le plus petit des deux poids vers la paire
-- Une paire dont le score dépasse zéro est gardée
-- Enfin, on trie par score décroissant, et on départage les égalités par ordre alphabétique
+## Exemple résolu : le score de A–C
+- Calculons un score ensemble, étape par étape
+- Étape un : l'arête directe A–C a un poids de un
+- Étape deux : A et C ont un voisin en commun, B
+- Les liens qui passent par B pèsent cinq et quatre, on garde le plus petit : quatre
+- Étape trois : on additionne, un plus quatre font cinq
+- Seule, A–C était faible, mais elle devient forte grâce à son ami commun
+![snippet](assets/worked-ac.png)
 
 ---
 
-## Le score par voisins communs en pseudo-code — try these
+## Dix paires, pas six
+- Avec la deuxième recette, notre petit graphe donne dix paires au lieu de six
+- Quatre d'entre elles n'ont aucun fil entre elles
+- Par exemple, B et D ne sont pas reliés, mais tous les deux sont reliés à C
+- B–D obtient donc le plus faible de ces deux liens : deux
+- C'est comme deux personnes qui ne se sont jamais vues mais ont le même meilleur ami
+- Seules les paires dont le score vaudrait zéro sont exclues
+
+---
+
+## La deuxième recette en pseudo-code
+- Voici la deuxième recette écrite sous forme d'étapes qu'un ordinateur peut suivre
+- D'abord, chaque arête ajoute son poids à sa propre paire
+- Ensuite, pour chaque paire de nœuds, on regarde chaque voisin qu'ils ont en commun
+- Pour chaque voisin commun, on ajoute le plus petit de ses deux liens
+- On garde chaque paire dont le score finit au-dessus de zéro
+- Enfin, on trie par score décroissant et on départage les égalités par ordre alphabétique
+
+---
+
+## La deuxième recette en pseudo-code — try these
 
 ```
 affinity_shared_neighbors(nodes, edges):
@@ -62,34 +115,25 @@ affinity_shared_neighbors(nodes, edges):
 
 ---
 
-## Dix paires, pas six
-- Avec le score par voisins communs, le graphe de départ donne dix paires, et non six
-- Quatre d'entre elles n'ont aucune arête
-- B et D sont tous les deux reliés à C, donc B–D obtient le plus petit rayon : deux
-- A–D, A–E et B–E gagnent chacune un, en passant par C
-- Ces paires ne sont pas des erreurs
-- Elles disent que deux cellules sont proches, même sans fil direct
-
----
-
 ## Même graphe, première fusion différente
+- Voici un deuxième exemple qui montre pourquoi la recette compte
 - Prenons un triangle serré P, Q, R, dont chaque arête pèse quatre
-- Ajoutons une paire isolée X–Y, de poids cinq
-- Le poids d'arête choisit d'abord X–Y, car cinq bat quatre
-- Le score par voisins communs donne à P–Q quatre, plus quatre via R : huit
-- X–Y n'a aucun voisin commun, donc reste à cinq
-- Même graphe, même moteur de fusion, mais une première fusion différente
+- À côté, une paire isolée X–Y a un poids de cinq
+- La première recette choisit X–Y, car cinq bat quatre
+- La deuxième donne à P–Q quatre, plus quatre via R : huit
+- P–Q passe donc en premier
 ![snippet](assets/priority-graph.png)
 
 ---
 
 ## Des nets à nombreuses broches
-- Les vraies netlists ne sont pas faites de simples arêtes
-- Un seul net peut relier de nombreuses cellules, comme une ligne de reset ou d'enable
-- Compter chaque net partagé à plein poids rapproche A et B à tort
-- Elles semblent proches simplement parce qu'elles voient toutes les deux le reset
-- Le score par nombre de broches corrige cela
-- Chaque net divise son poids par son nombre de broches moins un
+- Sur une vraie puce, un même fil peut relier plusieurs cellules à la fois
+- Un tel fil partagé s'appelle un net, et chaque cellule qu'il touche est une broche
+- Pensez à une discussion de groupe à cinquante : elle en dit peu sur qui est ami avec qui
+- Un message privé entre deux personnes en dit beaucoup plus
+- La troisième recette fonctionne pareil : chaque net partage son poids entre ses broches
+- La règle : le poids divisé par le nombre de broches moins un
+![snippet](assets/wide-nets.png)
 
 ---
 
@@ -133,19 +177,29 @@ python3 examples/affinity_check.py --impl my_affinity.py
 ---
 
 ## Les pièges à éviter
-- Attention à quatre choses
-- Compter deux fois une arête non orientée, une fois depuis chaque extrémité
-- Ajouter le plus grand rayon au lieu du plus petit, ce qui rend tout proche de tout
-- Oublier le départage : A–B et D–E changent alors de place d'une exécution à l'autre
-- Et compter les nets bruts sur une netlist
-- Des nets très larges comme le reset collent alors des cellules sans rapport
+- Attention à quatre erreurs fréquentes
+- Compter deux fois une arête, une fois depuis chaque extrémité
+- Ajouter le lien le plus fort au lieu du plus faible : tout semble alors proche de tout
+- Oublier le départage : A–B et D–E changent de place d'une exécution à l'autre
+- Et compter les grands nets partagés à plein poids, ce qui colle des cellules sans rapport
+
+---
+
+## Récapitulatif : trois recettes
+- Recette un, le poids d'arête : on ne regarde que le fil direct
+- Recette deux, les voisins communs : on ajoute l'aide des amis communs
+- Recette trois, le nombre de broches : un grand net partagé compte moins qu'un net privé
+- Les égalités se départagent par ordre alphabétique, donc les résultats ne changent jamais
+- Des recettes différentes peuvent choisir une première fusion différente
+- Choisir la recette est une décision de conception, pas un détail
 
 ---
 
 ## À vous de jouer
-- Faites passer les trois vérifications de référence
-- Puis expliquez pourquoi A–C monte avec le score par voisins communs
-- Expliquez aussi pourquoi le graphe de priorité change sa première fusion
-- Faites le petit quiz
-- Passez ensuite à la fusion gloutonne par paires, où ces scores deviennent la règle
+- Essayez les défis du lab, ou écrivez les trois recettes et passez le vérificateur
+- Puis expliquez deux choses avec vos propres mots
+- D'abord, pourquoi A–C monte-t-elle avec la deuxième recette ?
+- Ensuite, pourquoi le graphe de priorité change-t-il sa première fusion ?
+- Faites le petit quiz, puis passez à la fusion gloutonne par paires
+- Là, ces scores deviennent la règle de fusion
 

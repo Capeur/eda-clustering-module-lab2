@@ -1,259 +1,415 @@
 WEBVTT
 
-00:00:00.000 --> 00:00:05.249
-Avant de fusionner des cellules ou de réduire une netlist, il faut savoir lesquelles
+00:00:00.000 --> 00:00:02.638
+Quelles parties d'une puce vont ensemble ?
 
-00:00:05.249 --> 00:00:06.124
-vont ensemble.
+00:00:02.638 --> 00:00:05.339
+C'est la question à laquelle répond ce lab.
 
-00:00:06.124 --> 00:00:07.811
-Ce score, c'est l'affinité.
+00:00:05.339 --> 00:00:09.799
+Une puce est faite de millions de minuscules éléments appelés cellules.
 
-00:00:07.811 --> 00:00:12.122
-Vous allez comparer le poids d'arête et le score par voisins communs.
+00:00:09.799 --> 00:00:14.636
+Avant de les placer, un ordinateur doit savoir quelles cellules aiment rester
 
-00:00:12.122 --> 00:00:17.184
-Les deux sont testés sur le même petit graphe, pour voir qui fusionne en premier.
+00:00:14.636 --> 00:00:15.139
+proches.
 
-00:00:17.184 --> 00:00:21.620
-Ensuite, vous verrez un graphe où ces deux scores ne sont pas d'accord.
+00:00:15.139 --> 00:00:18.656
+Cette attirance est un nombre, qu'on appelle l'affinité.
 
-00:00:21.620 --> 00:00:26.494
-Enfin, un troisième score traite les vraies netlists, où un seul net touche de
+00:00:18.656 --> 00:00:23.807
+Dans ce lab, vous allez découvrir trois façons de la calculer, et voir pourquoi ce
 
-00:00:26.494 --> 00:00:27.744
-nombreuses cellules.
+00:00:23.807 --> 00:00:24.624
+choix compte.
 
-00:00:27.744 --> 00:00:31.445
-Cinq cellules, de A à E, reliées par des arêtes pondérées.
+00:00:24.624 --> 00:00:28.570
+Une puce contient des cellules, les petites briques du circuit.
 
-00:00:31.445 --> 00:00:36.740
-Les arêtes lourdes A, B et D, E pèsent toutes les deux cinq ; le pont qui passe par
+00:00:28.570 --> 00:00:31.764
+Les cellules communiquent entre elles par des fils.
 
-00:00:36.740 --> 00:00:37.889
-C est plus faible.
+00:00:31.764 --> 00:00:35.146
+On dessine chaque cellule comme un point, appelé nœud.
 
-00:00:37.889 --> 00:00:43.248
-C'est l'affinité qui va décider quelles paires veulent former un cluster en premier.
+00:00:35.146 --> 00:00:39.781
+Un trait entre deux points est une arête : les deux cellules sont reliées.
 
-00:00:43.248 --> 00:00:48.363
-L'affinité par poids d'arête se contente de trier les arêtes existantes.
+00:00:39.781 --> 00:00:44.353
+Le nombre sur une arête est son poids : combien de fils relient la paire.
 
-00:00:48.363 --> 00:00:53.477
-A, B et D, E sont à égalité à cinq ; le départage place A, B en premier.
+00:00:44.353 --> 00:00:47.985
+Ainsi, A, B a un poids de cinq : cinq fils relient A et B.
 
-00:00:53.477 --> 00:00:57.384
-Ce classement est la priorité de fusion la plus simple.
+00:00:47.985 --> 00:00:53.121
+Ce dessin s'appelle un graphe, et c'est la carte sur laquelle travaillent tous les
 
-00:00:57.384 --> 00:01:00.414
-A et B partagent déjà une arête de poids cinq.
+00:00:53.121 --> 00:00:54.624
+algorithmes de ce cours.
 
-00:01:00.414 --> 00:01:02.720
-Ils ont aussi un voisin commun : C.
+00:00:54.624 --> 00:00:58.830
+Les cellules qui échangent beaucoup de signaux doivent être proches.
 
-00:01:02.720 --> 00:01:08.055
-L'affinité par voisins communs ajoute le plus petit des deux rayons, c'est-à-dire
+00:00:58.830 --> 00:01:03.284
+Des fils courts rendent la puce plus rapide et économisent de l'énergie.
 
-00:01:08.055 --> 00:01:09.768
-un, donc A, B monte à six.
+00:01:03.284 --> 00:01:08.171
+Regrouper les cellules proches s'appelle le clustering, et chaque groupe est un
 
-00:01:09.768 --> 00:01:14.145
-Avec le score par voisins communs, A, B et D, E mènent à six.
+00:01:08.171 --> 00:01:08.665
+cluster.
 
-00:01:14.145 --> 00:01:17.303
-L'arête faible A, C bondit à cinq grâce à B.
+00:01:08.665 --> 00:01:13.676
+Pensez à un plan de classe : les amis qui discutent beaucoup s'assoient ensemble.
 
-00:01:17.303 --> 00:01:22.900
-Des paires sans arête, comme B, D, peuvent apparaître uniquement grâce à leurs
+00:01:13.676 --> 00:01:17.635
+Ici, A, B et C forment un groupe, et D et E en forment un autre.
 
-00:01:22.900 --> 00:01:24.048
-voisins communs.
+00:01:17.635 --> 00:01:22.459
+Seules les arêtes rouges passent d'un groupe à l'autre, et on en veut le moins
 
-00:01:24.048 --> 00:01:28.833
-L'affinité, c'est la préférence locale de l'objectif : quelles cellules vont
+00:01:22.459 --> 00:01:23.016
+possible.
 
-00:01:28.833 --> 00:01:31.414
-ensemble, avant les contraintes globales.
+00:01:23.016 --> 00:01:26.581
+L'affinité est un score donné à chaque paire de cellules.
 
-00:01:31.414 --> 00:01:36.576
-Une mauvaise affinité donne de mauvaises fusions, et un raffinement plus difficile
+00:01:26.581 --> 00:01:31.209
+Un score élevé veut dire que ces deux-là doivent être dans le même groupe.
 
-00:01:36.576 --> 00:01:37.080
-ensuite.
+00:01:31.209 --> 00:01:34.773
+Un score faible veut dire qu'elles peuvent être séparées.
 
-00:01:37.080 --> 00:01:40.661
-Voici le score par voisins communs sous forme de code.
+00:01:34.773 --> 00:01:39.902
+Les algorithmes de clustering fusionnent d'abord la paire qui a le meilleur score.
 
-00:01:40.661 --> 00:01:44.640
-D'abord, chaque arête existante ajoute son poids à sa paire.
+00:01:39.902 --> 00:01:43.154
+La recette du score décide donc de tout ce qui suit.
 
-00:01:44.640 --> 00:01:49.613
-Ensuite, on prend chaque paire de nœuds et chacun de leurs voisins communs.
+00:01:43.154 --> 00:01:46.656
+Ce lab compare trois recettes sur le même petit exemple.
 
-00:01:49.613 --> 00:01:54.918
-Pour chaque voisin commun, on ajoute le plus petit des deux poids vers la paire.
+00:01:46.656 --> 00:01:50.974
+Voici notre exemple pour tout le lab : cinq cellules, de A à E.
 
-00:01:54.918 --> 00:01:58.101
-Une paire dont le score dépasse zéro est gardée.
+00:01:50.974 --> 00:01:55.636
+Les arêtes lourdes sont A, B et D, E, avec un poids de cinq chacune.
 
-00:01:58.101 --> 00:02:03.140
-Enfin, on trie par score décroissant, et on départage les égalités par ordre
+00:01:55.636 --> 00:01:59.611
+C est au milieu, avec des liens plus fins vers les autres.
 
-00:02:03.140 --> 00:02:04.002
+00:01:59.611 --> 00:02:05.301
+Gardez cette image en tête : nous allons donner un score à chaque paire de cellules
+
+00:02:05.301 --> 00:02:06.192
+de ce graphe.
+
+00:02:06.192 --> 00:02:08.778
+La première recette est la plus simple.
+
+00:02:08.778 --> 00:02:13.420
+Le score d'une paire est simplement le poids de l'arête qui les relie.
+
+00:02:13.420 --> 00:02:18.857
+Ensuite, on trie les paires du plus grand au plus petit score, comme un classement
+
+00:02:18.857 --> 00:02:19.388
+sportif.
+
+00:02:19.388 --> 00:02:21.775
+A, B et D, E sont à égalité, à cinq.
+
+00:02:21.775 --> 00:02:27.212
+Quand deux scores sont égaux, on les départage par ordre alphabétique : A, B passe
+
+00:02:27.212 --> 00:02:28.273
+donc en premier.
+
+00:02:28.273 --> 00:02:33.578
+Ce départage fixe est important : il garantit que l'ordinateur donne toujours la
+
+00:02:33.578 --> 00:02:34.440
+même réponse.
+
+00:02:34.440 --> 00:02:39.463
+La deuxième recette ajoute une idée de la vie de tous les jours : les amis de nos
+
+00:02:39.463 --> 00:02:39.773
+amis.
+
+00:02:39.773 --> 00:02:44.920
+Si deux personnes ont un ami proche en commun, elles sont sans doute proches aussi.
+
+00:02:44.920 --> 00:02:48.269
+A et B sont reliés directement, avec un poids de cinq.
+
+00:02:48.269 --> 00:02:50.625
+Ils ont aussi un voisin en commun : C.
+
+00:02:50.625 --> 00:02:55.772
+On ajoute le plus faible des deux liens qui passent par C, c'est-à-dire un, donc A,
+
+00:02:55.772 --> 00:02:56.641
+B monte à six.
+
+00:02:56.641 --> 00:02:58.191
+Pourquoi le plus faible ?
+
+00:02:58.191 --> 00:03:02.904
+Parce qu'une chaîne n'est jamais plus solide que son maillon le plus faible.
+
+00:03:02.904 --> 00:03:07.965
+Avec la deuxième recette, A, B et D, E restent en tête, maintenant à six.
+
+00:03:07.965 --> 00:03:13.789
+Mais regardez A, C : seule, c'était une arête faible de poids un, et maintenant elle
+
+00:03:13.789 --> 00:03:15.523
+bondit à cinq, grâce à B.
+
+00:03:15.523 --> 00:03:21.208
+Même des paires sans aucune arête, comme B, D, obtiennent un score, parce qu'elles
+
+00:03:21.208 --> 00:03:22.872
+ont un voisin en commun.
+
+00:03:22.872 --> 00:03:27.701
+EDA signifie conception électronique automatisée : ce sont les logiciels qui
+
+00:03:27.701 --> 00:03:29.035
+conçoivent les puces.
+
+00:03:29.035 --> 00:03:34.308
+En EDA, l'affinité est la préférence locale : quelles cellules vont ensemble, avant
+
+00:03:34.308 --> 00:03:36.341
+toute règle sur la puce entière.
+
+00:03:36.341 --> 00:03:41.551
+Une mauvaise affinité donne de mauvaises fusions, et les corriger ensuite est bien
+
+00:03:41.551 --> 00:03:42.504
+plus difficile.
+
+00:03:42.504 --> 00:03:45.756
+Calculons un score ensemble, étape par étape.
+
+00:03:45.756 --> 00:03:49.298
+Étape un : l'arête directe A, C a un poids de un.
+
+00:03:49.298 --> 00:03:52.695
+Étape deux : A et C ont un voisin en commun, B.
+
+00:03:52.695 --> 00:03:58.693
+Les liens qui passent par B pèsent cinq et quatre, on garde le plus petit : quatre.
+
+00:03:58.693 --> 00:04:02.596
+Étape trois : on additionne, un plus quatre font cinq.
+
+00:04:02.596 --> 00:04:07.872
+Seule, A, C était faible, mais elle devient forte grâce à son ami commun.
+
+00:04:07.872 --> 00:04:12.680
+Avec la deuxième recette, notre petit graphe donne dix paires au lieu de six.
+
+00:04:12.680 --> 00:04:15.740
+Quatre d'entre elles n'ont aucun fil entre elles.
+
+00:04:15.740 --> 00:04:20.424
+Par exemple, B et D ne sont pas reliés, mais tous les deux sont reliés à C.
+
+00:04:20.424 --> 00:04:24.046
+B, D obtient donc le plus faible de ces deux liens : deux.
+
+00:04:24.046 --> 00:04:29.292
+C'est comme deux personnes qui ne se sont jamais vues mais ont le même meilleur ami.
+
+00:04:29.292 --> 00:04:32.976
+Seules les paires dont le score vaudrait zéro sont exclues.
+
+00:04:32.976 --> 00:04:38.221
+Voici la deuxième recette écrite sous forme d'étapes qu'un ordinateur peut suivre.
+
+00:04:38.221 --> 00:04:41.867
+D'abord, chaque arête ajoute son poids à sa propre paire.
+
+00:04:41.867 --> 00:04:47.176
+Ensuite, pour chaque paire de nœuds, on regarde chaque voisin qu'ils ont en commun.
+
+00:04:47.176 --> 00:04:51.589
+Pour chaque voisin commun, on ajoute le plus petit de ses deux liens.
+
+00:04:51.589 --> 00:04:55.427
+On garde chaque paire dont le score finit au-dessus de zéro.
+
+00:04:55.427 --> 00:05:00.224
+Enfin, on trie par score décroissant et on départage les égalités par ordre
+
+00:05:00.224 --> 00:05:01.056
 alphabétique.
 
-00:02:04.002 --> 00:02:06.456
-Ainsi, la liste est toujours la même.
+00:05:01.056 --> 00:05:06.103
+Voici un deuxième exemple qui montre pourquoi la recette compte.
 
-00:02:06.456 --> 00:02:12.334
-Avec le score par voisins communs, le graphe de départ donne dix paires, et non six.
-
-00:02:12.334 --> 00:02:15.132
-Quatre d'entre elles n'ont aucune arête.
-
-00:02:15.132 --> 00:02:20.940
-B et D sont tous les deux reliés à C, donc B, D obtient le plus petit rayon : deux.
-
-00:02:20.940 --> 00:02:24.858
-A, D, A, E et B, E gagnent chacune un, en passant par C.
-
-00:02:24.858 --> 00:02:27.307
-Ces paires ne sont pas des erreurs.
-
-00:02:27.307 --> 00:02:31.925
-Elles disent que deux cellules sont proches, même sans fil direct.
-
-00:02:31.925 --> 00:02:35.424
-Une paire n'est exclue que si son score vaut zéro.
-
-00:02:35.424 --> 00:02:40.600
+00:05:06.103 --> 00:05:11.230
 Prenons un triangle serré P, Q, R, dont chaque arête pèse quatre.
 
-00:02:40.600 --> 00:02:44.263
-Ajoutons une paire isolée X, Y, de poids cinq.
+00:05:11.230 --> 00:05:15.094
+À côté, une paire isolée X, Y a un poids de cinq.
 
-00:02:44.263 --> 00:02:48.961
-Le poids d'arête choisit d'abord X, Y, car cinq bat quatre.
+00:05:15.094 --> 00:05:19.353
+La première recette choisit X, Y, car cinq bat quatre.
 
-00:02:48.961 --> 00:02:54.933
-Le score par voisins communs donne à P, Q quatre, plus quatre via R : huit.
+00:05:19.353 --> 00:05:23.927
+La deuxième donne à P, Q quatre, plus quatre via R : huit.
 
-00:02:54.933 --> 00:02:58.755
-X, Y n'a aucun voisin commun, donc reste à cinq.
+00:05:23.927 --> 00:05:26.057
+P, Q passe donc en premier.
 
-00:02:58.755 --> 00:03:04.488
-Même graphe, même moteur de fusion, mais une première fusion différente.
+00:05:26.057 --> 00:05:31.656
+Même graphe, même règle de fusion, mais une première fusion différente.
 
-00:03:04.488 --> 00:03:08.111
-Les vraies netlists ne sont pas faites de simples arêtes.
+00:05:31.656 --> 00:05:36.225
+Sur une vraie puce, un même fil peut relier plusieurs cellules à la fois.
 
-00:03:08.111 --> 00:03:12.879
-Un seul net peut relier de nombreuses cellules, comme une ligne de reset ou
+00:05:36.225 --> 00:05:41.419
+Un tel fil partagé s'appelle un net, et chaque cellule qu'il touche est une broche.
 
-00:03:12.879 --> 00:03:13.451
-d'enable.
+00:05:41.419 --> 00:05:46.676
+Pensez à une discussion de groupe à cinquante : elle en dit peu sur qui est ami avec
 
-00:03:13.451 --> 00:03:17.583
-Compter chaque net partagé à plein poids rapproche A et B à tort.
+00:05:46.676 --> 00:05:46.927
+qui.
 
-00:03:17.583 --> 00:03:22.732
-Elles semblent proches simplement parce qu'elles voient toutes les deux le reset.
+00:05:46.927 --> 00:05:50.619
+Un message privé entre deux personnes en dit beaucoup plus.
 
-00:03:22.732 --> 00:03:25.528
-Le score par nombre de broches corrige cela.
+00:05:50.619 --> 00:05:55.564
+La troisième recette fonctionne pareil : chaque net partage son poids entre ses
 
-00:03:25.528 --> 00:03:29.533
-Chaque net divise son poids par son nombre de broches moins un.
+00:05:55.564 --> 00:05:56.064
+broches.
 
-00:03:29.533 --> 00:03:32.457
-Un net à deux broches compte donc entièrement.
+00:05:56.064 --> 00:05:59.882
+La règle : le poids divisé par le nombre de broches moins un.
 
-00:03:32.457 --> 00:03:36.144
-Un net à cinq broches ne donne qu'un quart à chaque paire.
+00:05:59.882 --> 00:06:04.889
+Ici, les nets enable et reset touchent cinq cellules chacun, ils ne donnent donc
 
-00:03:36.144 --> 00:03:39.750
-Dans le lab du navigateur, c'est vous qui calculez les scores.
+00:06:04.889 --> 00:06:06.579
+qu'un quart à chaque paire.
 
-00:03:39.750 --> 00:03:44.519
+00:06:06.579 --> 00:06:10.584
+Le net privé entre E et F donne tout son poids, c'est-à-dire un.
+
+00:06:10.584 --> 00:06:14.760
+À vous maintenant de calculer des scores, dans le lab du navigateur.
+
+00:06:14.760 --> 00:06:19.795
 Cliquez sur deux nœuds pour choisir une paire, même une paire sans arête, calculez
 
-00:03:44.519 --> 00:03:46.787
+00:06:19.795 --> 00:06:22.190
 son score à la main, puis saisissez-le.
 
-00:03:46.787 --> 00:03:51.265
+00:06:22.190 --> 00:06:24.953
+Le lab vous dit tout de suite si c'est juste.
+
+00:06:24.953 --> 00:06:29.682
 Vous pouvez aussi construire votre propre classement, une paire à la fois, et
 
-00:03:51.265 --> 00:03:55.511
+00:06:29.682 --> 00:06:34.165
 modifier les poids des arêtes pour voir quelle paire fusionne en premier.
 
-00:03:55.511 --> 00:03:59.291
-Vous pouvez passer d'un graphe à l'autre et d'un score à l'autre.
+00:06:34.165 --> 00:06:37.358
+Les dix défis vont du plus facile au plus difficile.
 
-00:03:59.291 --> 00:04:03.420
-Les dix défis vérifient ce que vous avez saisi, votre classement et vos
+00:06:37.358 --> 00:06:42.455
+Si vous bloquez, le bouton de détail montre le calcul, mais cette réponse ne compte
 
-00:04:03.420 --> 00:04:04.235
-modifications.
+00:06:42.455 --> 00:06:43.560
+plus pour le défi.
 
-00:04:04.235 --> 00:04:08.829
-Le détail du calcul et le classement complet sont là pour réviser, mais tout ce
+00:06:43.560 --> 00:06:48.191
+Si vous aimez programmer, le parcours implémentation est fait pour vous.
 
-00:04:08.829 --> 00:04:10.632
-qu'ils révèlent ne compte plus.
+00:06:48.191 --> 00:06:53.207
+D'abord, affichez les deux classements avec le programme de référence, pour le
 
-00:04:10.632 --> 00:04:15.506
-Dans le parcours implémentation, affichez les deux classements pour le graphe de
+00:06:53.207 --> 00:06:56.359
+graphe de départ puis pour le graphe de priorité.
 
-00:04:15.506 --> 00:04:20.380
-départ, puis pour le graphe de priorité, et comparez la première ligne de chaque
+00:06:56.359 --> 00:06:59.960
+Ensuite, écrivez vos trois fonctions de score en Python.
 
-00:04:20.380 --> 00:04:20.868
-tableau.
+00:06:59.960 --> 00:07:03.048
+Enfin, lancez le vérificateur sur votre fichier.
 
-00:04:20.868 --> 00:04:25.925
-Ensuite, écrivez vos propres fonctions de score, y compris le nombre de broches, et
+00:07:03.048 --> 00:07:08.321
+Il compare vos réponses aux bonnes, et il fournit les arêtes dans le désordre : un
 
-00:04:25.925 --> 00:04:28.423
-lancez le vérificateur sur votre fichier.
-
-00:04:28.423 --> 00:04:33.053
-Il contrôle les trois scores, et il fournit les arêtes dans le désordre : un
-
-00:04:33.053 --> 00:04:35.856
+00:07:08.321 --> 00:07:11.280
 départage oublié apparaît donc comme un échec.
 
-00:04:35.856 --> 00:04:37.588
-Attention à quatre choses.
+00:07:11.280 --> 00:07:13.741
+Attention à quatre erreurs fréquentes.
 
-00:04:37.588 --> 00:04:42.583
-Compter deux fois une arête non orientée, une fois depuis chaque extrémité.
+00:07:13.741 --> 00:07:17.757
+Compter deux fois une arête, une fois depuis chaque extrémité.
 
-00:04:42.583 --> 00:04:48.111
-Ajouter le plus grand rayon au lieu du plus petit, ce qui rend tout proche de tout.
+00:07:17.757 --> 00:07:23.003
+Ajouter le lien le plus fort au lieu du plus faible : tout semble alors proche de
 
-00:04:48.111 --> 00:04:53.240
-Oublier le départage : A, B et D, E changent alors de place d'une exécution à
+00:07:23.003 --> 00:07:23.327
+tout.
 
-00:04:53.240 --> 00:04:53.773
-l'autre.
+00:07:23.327 --> 00:07:28.508
+Oublier le départage : A, B et D, E changent de place d'une exécution à l'autre.
 
-00:04:53.773 --> 00:04:56.570
-Et compter les nets bruts sur une netlist.
+00:07:28.508 --> 00:07:33.754
+Et compter les grands nets partagés à plein poids, ce qui colle des cellules sans
 
-00:04:56.570 --> 00:05:01.632
-Des nets très larges comme le reset collent alors des cellules sans rapport.
+00:07:33.754 --> 00:07:34.272
+rapport.
 
-00:05:01.632 --> 00:05:05.036
-Faites passer les trois vérifications de référence.
+00:07:34.272 --> 00:07:38.459
+Recette un, le poids d'arête : on ne regarde que le fil direct.
 
-00:05:05.036 --> 00:05:09.642
-Puis expliquez pourquoi A, C monte avec le score par voisins communs.
+00:07:38.459 --> 00:07:43.111
+Recette deux, les voisins communs : on ajoute l'aide des amis communs.
 
-00:05:09.642 --> 00:05:14.514
-Expliquez aussi pourquoi le graphe de priorité change sa première fusion.
+00:07:43.111 --> 00:07:48.494
+Recette trois, le nombre de broches : un grand net partagé compte moins qu'un net
 
-00:05:14.514 --> 00:05:15.916
-Faites le petit quiz.
+00:07:48.494 --> 00:07:48.893
+privé.
 
-00:05:15.916 --> 00:05:21.456
-Passez ensuite à la fusion gloutonne par paires, où ces scores deviennent la règle.
+00:07:48.893 --> 00:07:54.342
+Les égalités se départagent par ordre alphabétique, donc les résultats ne changent
+
+00:07:54.342 --> 00:07:54.807
+jamais.
+
+00:07:54.807 --> 00:07:59.592
+Des recettes différentes peuvent choisir une première fusion différente.
+
+00:07:59.592 --> 00:08:03.912
+Choisir la recette est une décision de conception, pas un détail.
+
+00:08:03.912 --> 00:08:09.414
+Essayez les défis du lab, ou écrivez les trois recettes et passez le vérificateur.
+
+00:08:09.414 --> 00:08:12.702
+Puis expliquez deux choses avec vos propres mots.
+
+00:08:12.702 --> 00:08:16.862
+D'abord, pourquoi A, C monte-t-elle avec la deuxième recette ?
+
+00:08:16.862 --> 00:08:21.693
+Ensuite, pourquoi le graphe de priorité change-t-il sa première fusion ?
+
+00:08:21.693 --> 00:08:26.189
+Faites le petit quiz, puis passez à la fusion gloutonne par paires.
+
+00:08:26.189 --> 00:08:29.208
+Là, ces scores deviennent la règle de fusion.

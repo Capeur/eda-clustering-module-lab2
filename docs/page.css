@@ -1,5 +1,11 @@
+@font-face{font-family:"Source Sans 3";font-style:normal;font-weight:400;font-display:swap;src:url("fonts/source-sans-3-latin-400-normal.woff2") format("woff2");}
+@font-face{font-family:"Source Sans 3";font-style:normal;font-weight:600;font-display:swap;src:url("fonts/source-sans-3-latin-600-normal.woff2") format("woff2");}
+@font-face{font-family:"Source Sans 3";font-style:normal;font-weight:700;font-display:swap;src:url("fonts/source-sans-3-latin-700-normal.woff2") format("woff2");}
+@font-face{font-family:"Fraunces";font-style:normal;font-weight:500;font-display:swap;src:url("fonts/fraunces-latin-500-normal.woff2") format("woff2");}
+@font-face{font-family:"Fraunces";font-style:normal;font-weight:700;font-display:swap;src:url("fonts/fraunces-latin-700-normal.woff2") format("woff2");}
+@font-face{font-family:"IBM Plex Mono";font-style:normal;font-weight:400;font-display:swap;src:url("fonts/ibm-plex-mono-latin-400-normal.woff2") format("woff2");}
+@font-face{font-family:"IBM Plex Mono";font-style:normal;font-weight:500;font-display:swap;src:url("fonts/ibm-plex-mono-latin-500-normal.woff2") format("woff2");}
 /* Lab 02 landing page. Tokens match the course platform (platform/assets/site.css). */
-@import url("https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,500;9..144,700&family=IBM+Plex+Mono:wght@400;500&family=Source+Sans+3:wght@400;600;700&display=swap");
 
 :root {
   --bg: #f3efe6;
