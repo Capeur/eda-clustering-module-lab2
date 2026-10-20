@@ -1,0 +1,11 @@
+{
+  "nodes": ["P", "Q", "R", "X", "Y"],
+  "edges": [
+    {"u": "P", "v": "Q", "w": 4},
+    {"u": "P", "v": "R", "w": 4},
+    {"u": "Q", "v": "R", "w": 4},
+    {"u": "X", "v": "Y", "w": 5}
+  ],
+  "node_sizes": {"P": 1, "Q": 1, "R": 1, "X": 1, "Y": 1},
+  "notes": "A tight triangle P-Q-R (weight 4 each) and a lone heavy pair X-Y (weight 5). Edge weight merges X-Y first; shared-neighbor scoring merges P-Q first."
+}

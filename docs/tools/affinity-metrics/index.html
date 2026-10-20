@@ -1,0 +1,44 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Affinity metrics — EDA Algorithms Platform</title>
+  <link rel="stylesheet" href="../../assets/site.css">
+  <link rel="stylesheet" href="../../assets/tools-shared.css">
+  <link rel="stylesheet" href="../../assets/clustering-lab.css">
+  <style>
+    /* Lab 02 workspace extras (kept local to this tool) */
+    .aff-control { display: inline-flex; align-items: center; gap: 0.35rem; font-size: 0.85rem; }
+    .aff-panel .aff-row { margin: 0.4rem 0; align-items: center; }
+    .aff-input { width: 11rem; padding: 0.45rem 0.6rem; font: inherit; border: 1px solid var(--line, #ccc); border-radius: 6px; }
+    .aff-pair { margin: 0 0 0.3rem; }
+    .aff-msg { margin: 0.4rem 0; padding: 0.4rem 0.6rem; border-radius: 6px; background: rgba(180, 83, 9, 0.1); font-size: 0.88rem; }
+    .aff-muted { font-size: 0.85rem; color: var(--muted, #555); }
+    .aff-panel .metrics-pre { margin-top: 0.6rem; }
+    .aff-panel .btn:disabled { opacity: 0.45; cursor: not-allowed; }
+  </style>
+</head>
+<body>
+  <a class="skip-link" href="#main">Skip to content</a>
+  <header class="site-header">
+    <div class="site-header-inner">
+      <p class="brand"><a href="../../index.html">Clustering for EDA · Lab 02</a></p>
+      <nav class="site-nav" aria-label="Site">
+        <a href="../../index.html">Lab 02 home</a>
+        <a href="../../index.html#slides">Slides &amp; video</a>
+      </nav>
+    </div>
+  </header>
+  <main id="main">
+    <div class="eyebrow">Interactive tool</div>
+    <section class="hero">
+      <h1>Affinity metrics</h1>
+      <p class="lead">Score pairs by hand with three affinity metrics, build the ranking yourself, and change weights to see which pair merges first.</p>
+    </section>
+    <div id="lab-root"></div>
+  </main>
+  <footer class="site-footer">Lab 02 · Affinity metrics — part of the <a href="https://github.com/yongfu-li/eda-learning">EDA Algorithms Platform</a> clustering course (CC BY 4.0).</footer>
+  <script type="module" src="affinity-metrics.js"></script>
+</body>
+</html>

@@ -1,0 +1,10 @@
+{
+  "nodes": ["A", "B", "C", "D", "E", "F"],
+  "node_sizes": {"A": 1, "B": 1, "C": 1, "D": 1, "E": 1, "F": 1},
+  "hyperedges": [
+    {"id": "en", "pins": ["A", "B", "C", "D", "E"], "w": 1},
+    {"id": "rst", "pins": ["A", "B", "C", "D", "E"], "w": 1},
+    {"id": "n1", "pins": ["E", "F"], "w": 1}
+  ],
+  "notes": "Two wide 5-pin nets (enable, reset) touch A-E; one private 2-pin net joins E-F. Raw net count prefers A-B; pin-count scoring prefers E-F."
+}

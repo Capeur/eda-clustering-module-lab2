@@ -1,0 +1,420 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Lab 02 — Affinity metrics · Clustering for EDA</title>
+  <meta name="description" content="Lab 02 of the Clustering for EDA course: edge-weight, shared-neighbor and pin-count affinity, with narrated video, slides, an interactive browser lab and a quiz.">
+  <link rel="stylesheet" href="page.css">
+</head>
+<body>
+  <header class="top">
+    <div class="wrap">
+      <span class="crumb">Clustering for EDA · <strong>Lab 02</strong></span>
+      <nav class="toc" aria-label="On this page">
+        <a href="#video">Video</a>
+        <a href="#slides">Slides</a>
+        <a href="#lab">Interactive lab</a>
+        <a href="#implement">Implement</a>
+        <a href="#quiz">Quiz</a>
+        <a href="#transcript">Transcript</a>
+      </nav>
+    </div>
+  </header>
+
+  <main class="wrap">
+    <div class="hero">
+      <p class="eyebrow">Lab 02 · Foundations</p>
+      <h1>Affinity metrics</h1>
+      <p class="lead">Before any clustering algorithm merges two cells, it needs a score that says how much they belong together. This lab compares three scores (edge weight, shared neighbors, and pin-count for multi-pin nets) and shows that the choice changes which pair merges first.</p>
+    </div>
+
+    <section id="video">
+      <div class="card video-card">
+        <div class="missing">The narrated video has not been built yet. Run <code>narrate_clips.sh</code> in the course repo, then rebuild this site.</div>
+        <p class="meta">17 slides</p>
+        <div class="btns"></div>
+      </div>
+    </section>
+
+    <section id="slides">
+      <h2>Slides</h2>
+      <p>All 17 slides of the video. Click one to open it full size, or download the whole deck.</p>
+      <div class="btns" style="margin-bottom:1rem">
+        <a class="btn" href="slides.pdf">Slides (PDF)</a>
+        <a class="btn" href="slides.pptx" download>Slides (PowerPoint)</a>
+      </div>
+      <div class="slides">
+        <figure><a href="slides/01.png"><img src="slides/01.png" loading="lazy" alt="Slide 1: Affinity metrics"></a><figcaption><b>01</b>Affinity metrics</figcaption></figure>
+<figure><a href="slides/02.png"><img src="slides/02.png" loading="lazy" alt="Slide 2: Start with a tiny weighted graph"></a><figcaption><b>02</b>Start with a tiny weighted graph</figcaption></figure>
+<figure><a href="slides/03.png"><img src="slides/03.png" loading="lazy" alt="Slide 3: Edge-weight affinity ranks pairs"></a><figcaption><b>03</b>Edge-weight affinity ranks pairs</figcaption></figure>
+<figure><a href="slides/04.png"><img src="slides/04.png" loading="lazy" alt="Slide 4: Shared neighbors boost A–B"></a><figcaption><b>04</b>Shared neighbors boost A–B</figcaption></figure>
+<figure><a href="slides/05.png"><img src="slides/05.png" loading="lazy" alt="Slide 5: Shared ranking reshuffles the list"></a><figcaption><b>05</b>Shared ranking reshuffles the list</figcaption></figure>
+<figure><a href="slides/06.png"><img src="slides/06.png" loading="lazy" alt="Slide 6: Why affinity matters in EDA"></a><figcaption><b>06</b>Why affinity matters in EDA</figcaption></figure>
+<figure><a href="slides/07.png"><img src="slides/07.png" loading="lazy" alt="Slide 7: Shared-neighbor scoring as pseudocode"></a><figcaption><b>07</b>Shared-neighbor scoring as pseudocode</figcaption></figure>
+<figure><a href="slides/08.png"><img src="slides/08.png" loading="lazy" alt="Slide 8: Shared-neighbor scoring as pseudocode — try these"></a><figcaption><b>08</b>Shared-neighbor scoring as pseudocode — try these</figcaption></figure>
+<figure><a href="slides/09.png"><img src="slides/09.png" loading="lazy" alt="Slide 9: Ten pairs, not six"></a><figcaption><b>09</b>Ten pairs, not six</figcaption></figure>
+<figure><a href="slides/10.png"><img src="slides/10.png" loading="lazy" alt="Slide 10: Same graph, different first merge"></a><figcaption><b>10</b>Same graph, different first merge</figcaption></figure>
+<figure><a href="slides/11.png"><img src="slides/11.png" loading="lazy" alt="Slide 11: Nets with many pins"></a><figcaption><b>11</b>Nets with many pins</figcaption></figure>
+<figure><a href="slides/12.png"><img src="slides/12.png" loading="lazy" alt="Slide 12: Nets with many pins — try these"></a><figcaption><b>12</b>Nets with many pins — try these</figcaption></figure>
+<figure><a href="slides/13.png"><img src="slides/13.png" loading="lazy" alt="Slide 13: Browser lab track"></a><figcaption><b>13</b>Browser lab track</figcaption></figure>
+<figure><a href="slides/14.png"><img src="slides/14.png" loading="lazy" alt="Slide 14: Implement track"></a><figcaption><b>14</b>Implement track</figcaption></figure>
+<figure><a href="slides/15.png"><img src="slides/15.png" loading="lazy" alt="Slide 15: Implement track — try these"></a><figcaption><b>15</b>Implement track — try these</figcaption></figure>
+<figure><a href="slides/16.png"><img src="slides/16.png" loading="lazy" alt="Slide 16: Pitfalls to watch"></a><figcaption><b>16</b>Pitfalls to watch</figcaption></figure>
+<figure><a href="slides/17.png"><img src="slides/17.png" loading="lazy" alt="Slide 17: Your turn"></a><figcaption><b>17</b>Your turn</figcaption></figure>
+      </div>
+    </section>
+
+    <section id="lab">
+      <h2>Interactive lab</h2>
+      <div class="card lab-grid">
+        <a href="tools/affinity-metrics/index.html"><img src="img/lab-starter.png" alt="The affinity metrics browser lab: a graph on the left, the score entry and your ranking on the right"></a>
+        <div>
+          <p>Do the scoring yourself, right in the browser:</p>
+          <ul>
+            <li>Pick any pair of nodes, even one without an edge, compute its score by hand, and check it.</li>
+            <li>Build your own ranking in order. The tie-break counts.</li>
+            <li>Change edge weights and watch which pair merges first.</li>
+            <li>Three graphs (starter, priority, tiny netlist) and four scores.</li>
+          </ul>
+          <p>Ten challenges, from Intro to Stretch, check your own answers. The study aids are there if you're stuck, but what they reveal stops counting.</p>
+          <div class="btns"><a class="btn primary" href="tools/affinity-metrics/index.html">Open the lab</a></div>
+        </div>
+      </div>
+    </section>
+
+    <section id="implement">
+      <h2>Implement (Track A)</h2>
+      <p>Write the three scoring functions yourself and check them against the goldens. The commands below run inside the <a href="https://github.com/yongfu-li/eda-learning">course repository</a>, from <code>courses/learn_clustering/module01-01-affinity-metrics/</code>.</p>
+      <div class="files">
+        <a href="examples/tiny_graph.json" download><code>tiny_graph.json</code><small>Starter graph (golden 1)</small></a>
+<a href="examples/priority_graph.json" download><code>priority_graph.json</code><small>Priority graph: the first merge flips (golden 2)</small></a>
+<a href="examples/tiny_netlist.json" download><code>tiny_netlist.json</code><small>Tiny netlist with wide nets (golden 3)</small></a>
+<a href="examples/affinity_check.py" download><code>affinity_check.py</code><small>Golden self-check; --impl checks your code</small></a>
+      </div>
+      <div class="card md">
+        <h1>Examples — Affinity metrics</h1>
+<p>Track A (implement). Shared helpers: <code>../common/graphutil.py</code>.</p>
+<h2>Goal</h2>
+<p>Define <strong>three</strong> affinity scores, compute them by hand and in code, and show that the
+choice of score <strong>changes which pair merges first</strong>.</p>
+<p>Affinity answers one question for every pair of cells: <em>how much do these two want to be
+in the same cluster?</em> Every clustering algorithm later in this course (greedy merge,
+multilevel coarsening, hypergraph clustering) starts from such a ranking, so a bad score
+means bad merges that later refinement has to repair.</p>
+<table>
+<thead>
+<tr>
+<th>Score</th>
+<th>Uses</th>
+<th>Idea</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Edge weight</td>
+<td>graph</td>
+<td>direct connection only</td>
+</tr>
+<tr>
+<td>Shared neighbor + edge</td>
+<td>graph</td>
+<td>direct connection <strong>plus</strong> support through common neighbors ("connectivity")</td>
+</tr>
+<tr>
+<td>Pin-count (clique model)</td>
+<td>netlist</td>
+<td>each net spreads its weight over its pins, so wide nets count less</td>
+</tr>
+</tbody>
+</table>
+<h2>API (target)</h2>
+<pre><code class="language-text">affinity_edge_weight(edges) -&gt; list[(u, v, score)]                # sorted
+affinity_shared_neighbors(nodes, edges) -&gt; list[(u, v, score)]    # sorted
+affinity_pin_count(nodes, hyperedges) -&gt; list[(u, v, score)]      # sorted
+</code></pre>
+<p><strong>Sorted</strong> means score descending, then <code>u</code>, then <code>v</code> alphabetically. This <strong>tie-break</strong>
+is part of the API: A–B and D–E both score 5, and the golden puts A–B first because A &lt; D.
+Later labs (greedy merge) take the first pair, so an unstable tie-break changes their results.</p>
+<h2>Definitions</h2>
+<p><strong>Edge-weight affinity</strong></p>
+<pre><code class="language-text">score(u,v) = w(u,v)
+</code></pre>
+<p><strong>Shared-neighbor + edge affinity</strong></p>
+<pre><code class="language-text">score(u,v) = w(u,v) + sum_x min(w(u,x), w(v,x))
+             over common neighbors x
+</code></pre>
+<p><code>w(u,v)</code> is 0 when there is no direct edge. A pair with no edge but a common neighbor
+still gets a score (B–D below). Pairs whose score would be 0 are <strong>not</strong> listed.
+<code>min</code> means a neighbor only supports a pair as strongly as its <strong>weaker</strong> spoke.</p>
+<p><strong>Pin-count (clique-model) affinity</strong> for netlists, where one net can connect many pins:</p>
+<pre><code class="language-text">score(u,v) = sum over nets e containing u and v of  w(e) / (|e| - 1)
+</code></pre>
+<p><code>|e|</code> is the number of pins on the net. A 2-pin net gives its full weight; a 5-pin net
+gives only a quarter to each pair. Wide nets such as reset, enable or clock touch many cells
+and should not glue them all together.</p>
+<h2>Pseudocode</h2>
+<pre><code class="language-text">affinity_shared_neighbors(nodes, edges):
+  adj = adjacency map, adj[u][v] = w(u,v) (both directions)
+  score = {}
+  for (u, v, w) in edges: score[u,v] += w     # direct part
+  for every unordered pair (u, v) of nodes:
+    s = 0
+    for x in neighbors(u), x != v:
+      if x in neighbors(v):
+        s += min(adj[u][x], adj[v][x])
+    if s &gt; 0 or (u,v) in score: score[u,v] += s
+  return pairs sorted by (-score, u, v)
+</code></pre>
+<pre><code class="language-text">affinity_pin_count(nodes, nets):
+  score = {}
+  for net e with pins P (|P| &gt;= 2):
+    share = w(e) / (|P| - 1)
+    for every pair (u, v) in P: score[u,v] += share
+  return pairs sorted by (-score, u, v)
+</code></pre>
+<h2>Golden 1 — starter graph (<code>examples/tiny_graph.json</code>)</h2>
+<p>Edges: A–B 5, A–C 1, B–C 4, C–D 2, D–E 5, C–E 1.</p>
+<p><strong>Edge weight</strong> (exactly the six existing edges):</p>
+<table>
+<thead>
+<tr>
+<th>Rank</th>
+<th>Pair</th>
+<th>Score</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>1</td>
+<td>A–B</td>
+<td>5</td>
+</tr>
+<tr>
+<td>2</td>
+<td>D–E</td>
+<td>5</td>
+</tr>
+<tr>
+<td>3</td>
+<td>B–C</td>
+<td>4</td>
+</tr>
+<tr>
+<td>4</td>
+<td>C–D</td>
+<td>2</td>
+</tr>
+<tr>
+<td>5</td>
+<td>A–C</td>
+<td>1</td>
+</tr>
+<tr>
+<td>6</td>
+<td>C–E</td>
+<td>1</td>
+</tr>
+</tbody>
+</table>
+<p><strong>Shared neighbor + edge</strong> (ten pairs: the six edges plus four pairs that only share a neighbor):</p>
+<table>
+<thead>
+<tr>
+<th>Rank</th>
+<th>Pair</th>
+<th>Score</th>
+<th>Why</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>1</td>
+<td>A–B</td>
+<td>6</td>
+<td>5 + via C min(1,4)=1</td>
+</tr>
+<tr>
+<td>2</td>
+<td>D–E</td>
+<td>6</td>
+<td>5 + via C min(2,1)=1</td>
+</tr>
+<tr>
+<td>3</td>
+<td>A–C</td>
+<td>5</td>
+<td>1 + via B min(5,4)=4</td>
+</tr>
+<tr>
+<td>4</td>
+<td>B–C</td>
+<td>5</td>
+<td>4 + via A min(5,1)=1</td>
+</tr>
+<tr>
+<td>5</td>
+<td>C–D</td>
+<td>3</td>
+<td>2 + via E min(1,5)=1</td>
+</tr>
+<tr>
+<td>6</td>
+<td>C–E</td>
+<td>3</td>
+<td>1 + via D min(2,5)=2</td>
+</tr>
+<tr>
+<td>7</td>
+<td>B–D</td>
+<td>2</td>
+<td>no edge; via C min(4,2)=2</td>
+</tr>
+<tr>
+<td>8</td>
+<td>A–D</td>
+<td>1</td>
+<td>no edge; via C min(1,2)=1</td>
+</tr>
+<tr>
+<td>9</td>
+<td>A–E</td>
+<td>1</td>
+<td>no edge; via C min(1,1)=1</td>
+</tr>
+<tr>
+<td>10</td>
+<td>B–E</td>
+<td>1</td>
+<td>no edge; via C min(4,1)=1</td>
+</tr>
+</tbody>
+</table>
+<p>The weak edge A–C climbs from rank 5 to rank 3 because A and C both connect strongly to B:
+the triangle A–B–C is a dense group.</p>
+<h2>Golden 2 — affinity changes the first merge (<code>examples/priority_graph.json</code>)</h2>
+<p>A tight triangle P–Q–R (every edge weight 4) and a lone pair X–Y (weight 5).</p>
+<table>
+<thead>
+<tr>
+<th>Score</th>
+<th>First merge</th>
+<th>Why</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Edge weight</td>
+<td><strong>X–Y @ 5</strong></td>
+<td>heaviest single edge</td>
+</tr>
+<tr>
+<td>Shared neighbor + edge</td>
+<td><strong>P–Q @ 8</strong></td>
+<td>4 + via R min(4,4)=4; X–Y has no common neighbor, stays 5</td>
+</tr>
+</tbody>
+</table>
+<p>Same graph, same algorithm, different first merge. This is why the choice of affinity is a
+design decision, not a detail.</p>
+<h2>Golden 3 — wide nets (<code>examples/tiny_netlist.json</code>)</h2>
+<p>Two 5-pin nets (<code>en</code>, <code>rst</code>) touch A–E; one private 2-pin net joins E–F. All weights 1.</p>
+<table>
+<thead>
+<tr>
+<th>Score</th>
+<th>A–B (and every pair in A–E)</th>
+<th>E–F</th>
+<th>First merge</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Raw net count (sum of w)</td>
+<td>2</td>
+<td>1</td>
+<td>A–B</td>
+</tr>
+<tr>
+<td>Pin-count, w/(|e|−1)</td>
+<td>1/4 + 1/4 = <strong>0.5</strong></td>
+<td><strong>1.0</strong></td>
+<td><strong>E–F</strong></td>
+</tr>
+</tbody>
+</table>
+<p>Counting shared nets naively says A–B belongs together just because both see enable and
+reset. Pin-count scoring says E–F, the only pair with a private connection, matters more.
+Clustering a netlist turns into hypergraph clustering (module 03-03); this score is the
+bridge to it.</p>
+<h2>Try-these</h2>
+<p>From this module folder:</p>
+<pre><code class="language-bash"># point Python at the shared helpers
+export PYTHONPATH=../common
+
+# print both graph rankings for the starter graph
+python3 ../common/solvers.py examples/tiny_graph.json --mode affinity
+
+# same for the priority graph: compare the first line of each table
+python3 ../common/solvers.py examples/priority_graph.json --mode affinity
+
+# check every golden above, and print the rankings including pin-count
+python3 examples/affinity_check.py --show
+
+# check YOUR implementation (functions you have not written yet are skipped)
+python3 examples/affinity_check.py --impl my_affinity.py
+</code></pre>
+<p>Unit tests for the shared helpers, from <code>courses/learn_clustering</code>:</p>
+<pre><code class="language-bash">PYTHONPATH=common python3 -m unittest common.test_solvers.TestFoundations -v
+</code></pre>
+<h2>Starter prompts</h2>
+<ol>
+<li>Compute the shared-neighbor score of A–C, B–D and C–E <strong>by hand</strong>, then compare with Golden 1.</li>
+<li>Implement <code>affinity_edge_weight</code> and <code>affinity_shared_neighbors</code>; run
+   <code>affinity_check.py --impl</code> until the graph checks pass. (It feeds the edges in reverse order,
+   so a missing tie-break fails.)</li>
+<li>Explain in one sentence why A–C rises under shared-neighbor scoring.</li>
+<li>On the priority graph, explain why the first merge changes between the two scores.</li>
+<li>Implement <code>affinity_pin_count</code>. Explain why A–B drops to 0.5 while E–F stays 1.</li>
+<li>Stretch: copy the starter graph and raise D–E from 5 to 6. Predict both rankings first,
+   then run the solver on your copy. Which pair is now first, and does A–C still climb?</li>
+</ol>
+      </div>
+    </section>
+
+    <section id="quiz">
+      <h2>Quiz</h2>
+      <p>7 quick questions on this lab. Pick an answer for each, then check.</p>
+      <div class="card quiz" id="quiz-root"></div>
+      <script type="application/json" id="quiz-data">{"module": "module01-01-affinity-metrics", "title": "Affinity metrics check", "passing_score": 0.67, "items": [{"id": "q1", "type": "multiple_choice", "prompt": "Under pure edge-weight affinity on the starter graph, the top score is…", "choices": ["A–C at 1", "A–B (and D–E) at 5", "B–C at 4", "C–D at 2"], "answer": 1, "explain": "Heaviest edges are A–B and D–E at weight 5."}, {"id": "q2", "type": "true_false", "prompt": "Shared-neighbor affinity can raise a pair’s score above its direct edge weight.", "answer": true, "explain": "Overlap through common neighbors is added to the direct weight."}, {"id": "q3", "type": "multiple_choice", "prompt": "On the starter graph, shared-neighbor+edge score for A–B is…", "choices": ["5", "6", "4", "1"], "answer": 1, "explain": "5 + min(A–C,B–C)=1 → 6."}, {"id": "q4", "type": "multiple_choice", "prompt": "Why does A–C rise under shared-neighbor scoring?", "choices": ["Because A–C is the heaviest direct edge", "Because A and C share neighbor B with a strong path", "Because D–E disappears", "Because cutsize ignores affinity"], "answer": 1, "explain": "min(A–B,C–B)=4 boosts the weak A–C edge."}, {"id": "q5", "type": "multiple_choice", "prompt": "On the priority graph (triangle P–Q–R with weight 4 edges, lone pair X–Y with weight 5), which pair merges first under shared-neighbor + edge scoring?", "choices": ["X–Y at 5", "P–Q at 8", "P–Q at 4", "X–Y at 10"], "answer": 1, "explain": "P–Q = 4 + via R min(4,4) = 8. X–Y has no common neighbor, so it stays at 5. Edge weight alone would merge X–Y first."}, {"id": "q6", "type": "multiple_choice", "prompt": "Under pin-count affinity w(e)/(|e|−1), what does one 5-pin net of weight 1 add to each pair of its pins?", "choices": ["1", "0.5", "0.25", "0.2"], "answer": 2, "explain": "1 / (5 − 1) = 0.25. Wide nets such as reset or enable spread their weight thin, so they don't glue every cell together."}, {"id": "q7", "type": "true_false", "prompt": "Under shared-neighbor scoring, B–D gets a score of 2 even though there is no B–D edge.", "answer": true, "explain": "B and D share neighbor C: min(w(B,C), w(D,C)) = min(4, 2) = 2. Only pairs with a total score of 0 are left out."}]}</script>
+    </section>
+
+    <section id="transcript">
+      <details class="card transcript">
+        <summary>Full narration transcript</summary>
+        <h3>Affinity metrics</h3><p>Before you merge cells or coarsen a netlist, you need a score that says these two should stay together. That score is affinity. In this module you’ll compare plain edge weight with shared-neighbor scoring on the same tiny graph—and watch who wants to merge first. Then you’ll see a graph where the two scores disagree, and a third score for real netlists, where one net can touch many cells.</p>
+<h3>Start with a tiny weighted graph</h3><p>Five cells A through E with edge weights. Heavy edges A–B and D–E both weigh five; the bridge through C is weaker. Affinity will decide which pairs want to cluster first.</p>
+<h3>Edge-weight affinity ranks pairs</h3><p>Pure edge-weight affinity just sorts existing edges. A–B and D–E tie at five; tie-break puts A–B first. That ranking is the simplest merge priority.</p>
+<h3>Shared neighbors boost A–B</h3><p>A and B already share edge weight five. They also share neighbor C. Shared-neighbor affinity adds the minimum of those spokes—one—so A–B rises to six.</p>
+<h3>Shared ranking reshuffles the list</h3><p>Under shared-neighbor scoring, A–B and D–E lead at six. Weak edge A–C jumps to five because of B. Non-edges like B–D can appear from shared support alone.</p>
+<h3>Why affinity matters in EDA</h3><p>Affinity is the objective’s local preference: which cells belong together before global constraints. Bad affinity means bad merges, and harder refinement later.</p>
+<h3>Shared-neighbor scoring as pseudocode</h3><p>Here is the shared-neighbor score as code. First, every existing edge adds its weight to its pair. Then, for every pair of nodes, look at each neighbor they have in common, and add the smaller of the two connecting weights. If a pair ends up with a score above zero, keep it. Finally, sort by score, highest first, and break ties alphabetically, so your list comes out the same every time.</p>
+<h3>Ten pairs, not six</h3><p>Under shared-neighbor scoring the starter graph produces ten pairs, not six. Four of them have no edge at all. B and D both connect to C, so B–D scores the smaller spoke, two. A–D, A–E and B–E each pick up one through C. These pairs aren&#x27;t mistakes: they say two cells are close even without a direct wire. A pair is only left out when its score would be zero.</p>
+<h3>Same graph, different first merge</h3><p>Here&#x27;s why the choice matters. Take a tight triangle P, Q, R, with every edge at weight four, and a lone pair X–Y at weight five. Edge weight picks X–Y first, because five beats four. Shared-neighbor scoring gives P–Q four plus four through R: eight. X–Y has no common neighbor, so it stays at five. Same graph, same merge engine, different first merge.</p>
+<h3>Nets with many pins</h3><p>Real netlists aren&#x27;t simple edges. One net can connect many cells, like a reset or an enable line. If you count every shared net at full weight, cells A and B look close just because both see reset. Pin-count scoring fixes this. Each net splits its weight across its pins: weight divided by pins minus one. A two-pin net counts fully. A five-pin net gives only a quarter to each pair.</p>
+<h3>Browser lab track</h3><p>In the browser lab, you do the scoring. Click two nodes to pick a pair, even a pair with no edge, work out its score by hand, and type it in. You can also build your own ranking, one pair at a time, and change edge weights to see which pair merges first. You can switch between all three graphs and all the scores. The ten challenges check what you typed, your ranking and your edits. The breakdown and the full ranking are there for study, but anything they reveal no longer counts.</p>
+<h3>Implement track</h3><p>In the implement track, print both rankings for the starter graph, then for the priority graph, and compare the first line of each table. Then write your own scoring functions, including pin-count, and run the golden checker on your file. It checks all three scores, and it feeds the edges in a scrambled order, so a missing tie-break shows up as a failure.</p>
+<h3>Pitfalls to watch</h3><p>Watch for four things. Counting an undirected edge twice, once from each end. Adding the larger spoke instead of the smaller one, which makes everything look close. Forgetting the tie-break, so A–B and D–E swap places from run to run. And using raw net counts on a netlist, where wide nets like reset glue unrelated cells together.</p>
+<h3>Your turn</h3><p>Match all three golden checks, then explain two things in your own words: why A–C climbs under shared-neighbor scoring, and why the priority graph changes its first merge. Take the short quiz, then continue to greedy pair merge, where these scores become the merge policy.</p>
+      </details>
+    </section>
+  </main>
+
+  <footer>
+    <div class="wrap">
+      Lab 02 of the Clustering for EDA course, from the <a href="https://github.com/yongfu-li/eda-learning">EDA Algorithms Platform</a> (CC BY 4.0). Review build, not yet merged into the course repository.
+    </div>
+  </footer>
+  <script src="quiz.js"></script>
+</body>
+</html>

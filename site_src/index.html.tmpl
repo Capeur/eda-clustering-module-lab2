@@ -1,0 +1,103 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Lab 02 — Affinity metrics · Clustering for EDA</title>
+  <meta name="description" content="Lab 02 of the Clustering for EDA course: edge-weight, shared-neighbor and pin-count affinity, with narrated video, slides, an interactive browser lab and a quiz.">
+  <link rel="stylesheet" href="page.css">
+</head>
+<body>
+  <header class="top">
+    <div class="wrap">
+      <span class="crumb">Clustering for EDA · <strong>Lab 02</strong></span>
+      <nav class="toc" aria-label="On this page">
+        <a href="#video">Video</a>
+        <a href="#slides">Slides</a>
+        <a href="#lab">Interactive lab</a>
+        <a href="#implement">Implement</a>
+        <a href="#quiz">Quiz</a>
+        <a href="#transcript">Transcript</a>
+      </nav>
+    </div>
+  </header>
+
+  <main class="wrap">
+    <div class="hero">
+      <p class="eyebrow">Lab 02 · Foundations</p>
+      <h1>Affinity metrics</h1>
+      <p class="lead">Before any clustering algorithm merges two cells, it needs a score that says how much they belong together. This lab compares three scores (edge weight, shared neighbors, and pin-count for multi-pin nets) and shows that the choice changes which pair merges first.</p>
+    </div>
+
+    <section id="video">
+      <div class="card video-card">
+        {{VIDEO}}
+        {{META}}
+        <div class="btns">{{DOWNLOADS}}</div>
+      </div>
+    </section>
+
+    <section id="slides">
+      <h2>Slides</h2>
+      <p>All {{N_SLIDES}} slides of the video. Click one to open it full size, or download the whole deck.</p>
+      <div class="btns" style="margin-bottom:1rem">
+        <a class="btn" href="slides.pdf">Slides (PDF)</a>
+        <a class="btn" href="slides.pptx" download>Slides (PowerPoint)</a>
+      </div>
+      <div class="slides">
+        {{SLIDES}}
+      </div>
+    </section>
+
+    <section id="lab">
+      <h2>Interactive lab</h2>
+      <div class="card lab-grid">
+        <a href="tools/affinity-metrics/index.html"><img src="img/lab-starter.png" alt="The affinity metrics browser lab: a graph on the left, the score entry and your ranking on the right"></a>
+        <div>
+          <p>Do the scoring yourself, right in the browser:</p>
+          <ul>
+            <li>Pick any pair of nodes, even one without an edge, compute its score by hand, and check it.</li>
+            <li>Build your own ranking in order. The tie-break counts.</li>
+            <li>Change edge weights and watch which pair merges first.</li>
+            <li>Three graphs (starter, priority, tiny netlist) and four scores.</li>
+          </ul>
+          <p>Ten challenges, from Intro to Stretch, check your own answers. The study aids are there if you're stuck, but what they reveal stops counting.</p>
+          <div class="btns"><a class="btn primary" href="tools/affinity-metrics/index.html">Open the lab</a></div>
+        </div>
+      </div>
+    </section>
+
+    <section id="implement">
+      <h2>Implement (Track A)</h2>
+      <p>Write the three scoring functions yourself and check them against the goldens. The commands below run inside the <a href="{{COURSE_URL}}">course repository</a>, from <code>courses/learn_clustering/module01-01-affinity-metrics/</code>.</p>
+      <div class="files">
+        {{EXAMPLE_FILES}}
+      </div>
+      <div class="card md">
+        {{EXAMPLES_HTML}}
+      </div>
+    </section>
+
+    <section id="quiz">
+      <h2>Quiz</h2>
+      <p>{{N_QUIZ}} quick questions on this lab. Pick an answer for each, then check.</p>
+      <div class="card quiz" id="quiz-root"></div>
+      <script type="application/json" id="quiz-data">{{QUIZ_JSON}}</script>
+    </section>
+
+    <section id="transcript">
+      <details class="card transcript">
+        <summary>Full narration transcript</summary>
+        {{TRANSCRIPT}}
+      </details>
+    </section>
+  </main>
+
+  <footer>
+    <div class="wrap">
+      Lab 02 of the Clustering for EDA course, from the <a href="{{COURSE_URL}}">EDA Algorithms Platform</a> (CC BY 4.0). Review build, not yet merged into the course repository.
+    </div>
+  </footer>
+  <script src="quiz.js"></script>
+</body>
+</html>
